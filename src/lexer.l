@@ -1,10 +1,28 @@
+OCT     [0-7]
+DEC     [0-9]
+DEC_NZ  [1-9]
+HEX     [a-fA-F0-9]
+HEX_P   (0[xX])
+L       [a-zA-Z_]
+L_DEC   [a-zA-Z_0-9]
+FP_E    ([Ee][+-]?{D}+)
+FP_P    ([Pp][+-]?{D}+)
+F_SPEC  (f|F|l|L)
+I_SPEC  (((u|U)(l|L|ll|LL)?)|((l|L|ll|LL)(u|U)?))
+C_SPEC  (u|U|L)
+S_SPEC  (u8|u|U|L)
+L_ESC   (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
+L_W     [ \t\v\n\f]
+
 %{
 #include "y.tab.h"
+static int GetIdentType();
 }%
 
 %%
 
-"//"[^\n]*  { /**line comment*/ }
+"/*"*^"*/"  { /*multiline comment*/ }
+"//"[^\n]*  { /*  line comment   */ }
 
 asm         { return ASM;       }
 auto        { return AUTO;      }
@@ -67,7 +85,49 @@ _Imaginary  { return IMAGINARY; }
 "&&"        { return OP_AND;            }
 "||"        { return OP_OR;             }
 
-.           { return *yytext;           }
+";"			{ return ';'; }
+","			{ return ','; }
+":"			{ return ':'; }
+"."			{ return '.'; }
+"{"			{ return '{'; }
+"}"			{ return '}'; }
+"("			{ return '('; }
+")"			{ return ')'; }
+"["			{ return '['; }
+"]"			{ return ']'; }
+"="			{ return '='; }
+"+"			{ return '+'; }
+"-"			{ return '-'; }
+"*"			{ return '*'; }
+"/"			{ return '/'; }
+"%"			{ return '%'; }
+"&"			{ return '&'; }
+"~"			{ return '~'; }
+"^"			{ return '^'; }
+"|"			{ return '|'; }
+"!"			{ return '!'; }
+"<"			{ return '<'; }
+">"			{ return '>'; }
+"?"			{ return '?'; }
+
+{L}{L_DEC   { return GetIdentType();    }
+
+{HEX_P}{HEX}+{I_SPEC}?              { return INT_LITERAL;   }
+{DEC_NZ}{DEC}*{I_SPEC}?             { return INT_LITERAL;   }
+"0"{OCT}*{I_SPEC}?                  { return INT_LITERAL;   }
+{C_SPEC}?"'"([^'\\\n]|{L_ESC})+"'"  { return INT_LITERAL;   }
+
+{DEC}+{FP_E}{F_SPEC}?				    { return F_CONSTANT; }
+{DEC}*"."{DEC}+{FP_E}?{F_SPEC}?			{ return F_CONSTANT; }
+{DEC}+"."{FP_E}?{F_SPEC}?			    { return F_CONSTANT; }
+{HEX_P}{HEX}+{FP_P}{F_SPEC}?			{ return F_CONSTANT; }
+{HEX_P}{HEX}*"."{HEX}+{FP_P}{F_SPEC}?	{ return F_CONSTANT; }
+{HEX_P}{HEX}+"."{FP_P}{F_SPEC}?			{ return F_CONSTANT; }
+
+({S_SPEC}?\"([^"\\\n]|{L_ESC})*\"{L_W}*)+	{ return STRING_LITERAL; }
+
+{WS}+       { /* skip whitespaces  */   }
+.           { /* skip unrecognised */   }
 
 <<EOF>>     { return EOF;               }
 

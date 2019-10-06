@@ -3,7 +3,7 @@
 %}
 
 %union {
-	void *astNode;
+	struct AstNode *astNode;
 	char *stringVal;
 }
 
@@ -31,8 +31,9 @@
 
 
 
-%start Program
+%start TranslationUnit
 
+%token IDENTIFIER TYPE_NAME INT_LITERAL FLOAT_LITERAL CHAR_LITERAL STRING_LITERAL
 // built-in types
 %token CHAR DOUBLE FLOAT INT LONG SHORT VOID BOOL COMPLEX IMAGINARY
 // data storage type modifiers
@@ -100,14 +101,10 @@ Expression : AssignmentExpression
 	| Expression ',' AssignmentExpression
 
 AssignmentExpression : ConditionalExpression
-	| UnaryExpression AssignmentOperator AssignmentExpression
-
-OptionalExpression :
-	| Expression
+	| UnaryExpression AssignmentOperator AssignmentExpression { $$ = $2 }
 
 
-
-Statement : LabeledStatement
+Statement : LabeledStatement { $$ = $1; }
 	| ExpressionStatement
 	| CompoundStatement
 	| SelectionStatement
@@ -118,7 +115,19 @@ LabeledStatement : Identifier ':' Statement
 	| CASE ConstantExpression ':' Statement
 	| DEFAULT ':' Statement
 
-ExpressionStatement : OptionalExpression ';'
+CompoundStatement : '{' '}'
+	| '{' StatementList '}'
+	| '{' DeclarationList '}'
+	| '{' DeclarationList StatementList '}'
+
+DeclarationList : Declaration
+	| DeclarationList Declaration
+
+StatementList : Statement
+	| StatementList Statement
+
+ExpressionStatement : ';'
+	| Expression ';'
 
 SelectionStatement : IF '(' Expression ')' Statement
 	| IF '(' Expression ')' Statement ELSE Statement
@@ -126,12 +135,21 @@ SelectionStatement : IF '(' Expression ')' Statement
 
 IterationStatement : WHILE '(' Expression ')' Statement
 	| DO Statement WHILE '(' Expression ')' ';'
-	| FOR '(' OptionalExpression ';' OptionalExpression ';' OptionalExpression ')' Statement
+	| FOR '(' ExpressionStatement ExpressionStatement ')' Statement
+	| FOR '(' ExpressionStatement ExpressionStatement Expression ')' Statement
 
 JumpStatement : GOTO Identifier ';'
 	| CONTINUE ';'
 	| BREAK ';'
-	| RETURN OptionalExpression ;
+	| RETURN OptionalExpression ';'
 
+FunctionDefinition : Declarator CompoundStatement
+	| Declarator DeclarationList CompoundStatement
+	| DeclarationSpecifiers Declarator CompoundStatement
+	| DeclarationSpecifiers Declarator DeclarationList CompoundStatement
 
-Program : Statement
+ExternalDeclaration : Declaration
+	| FunctionDefinition
+
+TranslationUnit : ExternalDeclaration
+	: TranslationUnit ExternalDeclaration
