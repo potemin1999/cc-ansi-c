@@ -39,7 +39,7 @@
 // data storage type modifiers
 %token AUTO CONST EXTERN INLINE REGISTER RESTRICT SIGNED STATIC UNSIGNED VOLATILE
 // keywords
-%token ASM BREAK CASE CONTINUE DEFAULT DO ELSE ENUM FOR GOTO IF RETURN SIZEOF STRUCT SWITCH TYPEDEF UNION WHILE
+%token ASM BREAK CASE CONTINUE DEFAULT DO ELSE ENUM FOR GOTO IF RETURN SIZEOF STRUCT SWITCH TYPEDEF UNION WHILE ELLIPSIS
 
 %type <stringVal> String
 %type <astNode> Constant UnaryExpression PosfixExpression PrimaryExpression Expression AssignmentExpression OptionalExpression
@@ -52,20 +52,134 @@ StorageClassSpecifier : AUTO
 	| STATIC
 	| EXTERN
 
-SpecifierQualifier : TypeSpecifier
-	| TypeQualifier String
+Constant : INT_LITERAL
+	| CHAR_LITERAL
+	| FLOAT_LITERAL
+	| Enumerator
 
-SpecifierQualifierList : SpecifierQualifier
-	| SpecifierQualifier
+PrimaryExpression : IDENTIFIER
+	| Constant
+	| STRING_LITERAL
+	| '(' Expression ')'
+
+PostfixExpression : PrimaryExpression
+	| PostfixExpression '[' Expression ']'
+	| PostfixExpression '(' ')'
+	| PostfixExpression '(' Expression ')'
+	| PostfixExpression '.' IDENTIFIER
+	| PostfixExpression OP_PTR_ACCESS IDENTIFIER
+	| PostfixExpression OP_INC
+	| PostfixExpression OP_DEC
+
+UnaryOperator : '&'
+	| '*'
+	| '+'
+	| '-'
+	| '~'
+	| '!'
+
+UnaryExpression : PostfixExpression
+    	| INC_OP UnaryExpression
+    	| DEC_OP UnaryExpression
+    	| UnaryOperator CastExpression
+    	| SIZEOF UnaryExpression
+    	| SIZEOF '(' TypeName ')'
+
+CastExpression : UnaryExpression
+    	| '(' TypeName ')' CastExpression
+
+MultiplicativeExpression : CastExpression
+	| MultiplicativeExpression '*' CastExpression
+	| MultiplicativeExpression '/' CastExpression
+	| MultiplicativeExpression '%' CastExpression
+
+AdditiveExpression : MultiplicativeExpression
+    	| AdditiveExpression '+' MultiplicativeExpression
+    	| AdditiveExpression '-' MultiplicativeExpression
+
+ShiftExpression : AdditiveExpression
+   	| ShiftExpression OP_L_SHIFT AdditiveExpression
+   	| ShiftExpression OP_R_SHIFT AdditiveExpression
+
+RelationalExpression: ShiftExpression
+    	| RelationalExpression '<' ShiftExpression
+    	| RelationalExpression '>' ShiftExpression
+    	| RelationalExpression OP_LE_THAN ShiftExpression
+    	| RelationalExpression OP_GE_THAN ShiftExpression
+
+EqualityExpression : RelationalExpression
+    	| EqualityExpression OP_EQ_TO RelationalExpression
+    	| EqualityExpression OP_NEQ_TO RelationalExpression
+
+AndExpression : EqualityExpression
+    	| AndExpression '&' EqualityExpression
+
+ExclusiveOrExpression : AndExpression
+    	| ExclusiveOrExpression '^' AndExpression
+
+InclusiveOrExpression : ExclusiveOrExpression
+    	| InclusiveOrExpression '|' ExclusiveOrExpression
+
+LogicalAndExpression : InclusiveOrExpression
+    	| LogicalAndExpression AND_OP InclusiveOrExpression
+
+LogicalOrExpression : LogicalAndExpression
+    	| LogicalOrExpression OP_OR LogicalAndExpression
+
+ConditionalExpression : LogicalOrExpression
+    	| LogicalOrExpression '?' Expression : ConditionalExpression
+
+AssignmentOperator : '='
+    	| MUL_ASSIGN
+    	| DIV_ASSIGN
+    	| MOD_ASSIGN
+    	| ADD_ASSIGN
+    	| SUB_ASSIGN
+    	| LEFT_ASSIGN
+    	| RIGHT_ASSIGN
+    	| AND_ASSIGN
+    	| XOR_ASSIGN
+    	| OR_ASSIGN
+
+AssignmentExpression : ConditionalExpression
+	| UnaryExpression AssignmentOperator AssignmentExpression { $$ = $2 }
+
+Expression : AssignmentExpression
+	| Expression ',' AssignmentExpression
+
+ArgumentExpressionList : AssignmentExpression
+    	| ArgumentExpressionList ',' AssignmentExpression
+
+Enumerator : IDENTIFIER
+    	| IDENTIFIER '=' Constant
+
+EnumeratorList : Enumerator
+    	| EnumeratorList ',' Enumerator
+
+EnumSpecifier : ENUM IDENTIFIER
+    	| ENUM '{' EnumeratorList '}'
+    	| ENUM IDENTIFIER '{' EnumeratorList '}'
+
+Initializer : AssignmentExpression
+    	| '{' InitializerList '}'
+    	| '{' InitializerList ',' '}'
+
+InitializerList : Initializer
+    	| InitializerList ',' Initializer
+
+IdentifierList : IDENTIFIER
+    	| IdentifierList ',' IDENTIFIER
+
+TypeQualifier : CONST | VOLATILE
+
+TypeQualifierList : TypeQualifier
+	| TypeQualifierList TypeQualifier
 
 StructOrUnion : STRUCT | UNION
 
-StructOrUnionSpecifier : StructOrUnion Identifier
-	| StructOrUnion '{' NonEmptyStructDeclarationList '}'
-	| StructOrUnion identifier '{' NonEmptyStructDeclarationList '}'
-
-NonEmptyStructDeclarationList : StructDeclaration
-	| NonEmptyStructDeclarationList StructDeclaration
+StructOrUnionSpecifier : StructOrUnion IDENTIFIER
+	| StructOrUnion '{' StructDeclarationList '}'
+	| StructOrUnion IDENTIFIER '{' StructDeclarationList '}'
 
 TypeSpecifier : VOID
 	| CHAR
@@ -76,33 +190,89 @@ TypeSpecifier : VOID
 	| DOUBLE
 	| SIGNED
 	| UNSIGNED
-	|
+	| StructOrUnionSpecifier
+	| EnumSpecifier
+	| TYPE_NAME
 
-Constant : IntegerConstant
-	| CharacterConstant
-	| FloatingConstant
-	| EnumerationConstant
+SpecifierQualifier : TypeSpecifier
+	| TypeQualifier String
 
-PostfixExpression : PrimaryExpression
-	| PostfixExpression '[' Expression ']'
-				//Assignment Expression
-	| PostfixExpression '(' Expression ')'
-	| PostfixExpression '.' Identifier
-	| PostfixExpression OP_PTR_ACCESS Identifier
-	| PostfixExpression OP_INC
-	| PostfixExpression OP_DEC
+SpecifierQualifierList : SpecifierQualifier
+	| SpecifierQualifier
 
-PrimaryExpression : Identifier
-	| Constant
-	| String
-	| '(' Expression ')'
+Pointer : '*'
+   	| '*' Pointer
+   	| '*' TypeQualifierList
+   	| '*' TypeQualifierList Pointer
 
-Expression : AssignmentExpression
-	| Expression ',' AssignmentExpression
+Declarator : Pointer DirectDeclarator
+    	| DirectDeclarator
 
-AssignmentExpression : ConditionalExpression
-	| UnaryExpression AssignmentOperator AssignmentExpression { $$ = $2 }
+DirectDeclarator : IDENTIFIER
+    	| '(' Declarator ')'
+    	| DirectDeclarator '(' ')'
+    	| DirectDeclarator '[' ']'
+    	| DirectDeclarator '(' ParameterTypeList ')'
+    	| DirectDeclarator '(' IdentifierList ')'
+    	| DirectDeclarator '[' Constant ']'
 
+DirectAbstractDeclarator : '[' ']'
+   	| '[' Constant ']'
+   	| '(' ')'
+   	| '(' ParameterTypeList ')'
+   	| '(' AbstractDeclarator ')'
+   	| DirectAbstractDeclarator '[' ']'
+   	| DirectAbstractDeclarator '[' Constant ']'
+   	| DirectAbstractDeclarator '(' ')'
+   	| DirectAbstractDeclarator '(' ParameterTypeList ')'
+
+AbstractDeclarator : Pointer
+    	| DirectAbstractDeclarator
+    	| Pointer DirectAbstractDeclarator
+
+InitDeclarator : Declarator
+	| Declarator '=' Initializer
+
+InitDeclaratorList : InitDeclarator
+	| InitDeclaratorList ',' InitDeclarator
+
+DeclarationSpecifiers : StorageClassSpecifier
+	| TypeSpecifier
+	| TypeQualifier
+	| StorageClassSpecifier DeclarationSpecifiers
+	| TypeSpecifier DeclarationSpecifiers
+	| TypeQualifier DeclarationSpecifiers
+
+Declaration : DeclarationSpecifiers ';'
+	| DeclarationSpecifiers InitDeclaratorList ';'
+
+DeclarationList : Declaration
+	| DeclarationList Declaration
+
+StructDeclarator : Declarator
+	| Declarator ':' Constant
+	| ':' Constant
+
+StructDeclaration : SpecifierQualifierList StructDeclaratorList ';'
+
+StructDeclarationList : StructDeclaration
+	| StructDeclarationList StructDeclaration
+
+NonEmptyStructDeclarationList : StructDeclarator
+	| NonEmptyStructDeclarationList StructDeclarator
+
+ParameterDeclaration : DeclarationSpecifiers Declarator
+    	| DeclarationSpecifiers AbstractDeclarator
+    	| DeclarationSpecifiers
+
+ParameterList : ParameterDeclaration
+   	| ParamaterList ',' ParameterDeclaration
+
+ParameterTypeList : ParameterList
+	|  ParameterList ',' ELLIPSIS
+
+TypeName : SpecifierQualifierList
+    	| SpecifierQualifierList AbstractDeclarator
 
 Statement : LabeledStatement { $$ = $1; }
 	| ExpressionStatement
@@ -111,23 +281,21 @@ Statement : LabeledStatement { $$ = $1; }
 	| IterationStatement
 	| JumpStatement
 
-LabeledStatement : Identifier ':' Statement
-	| CASE ConstantExpression ':' Statement
-	| DEFAULT ':' Statement
-
-CompoundStatement : '{' '}'
-	| '{' StatementList '}'
-	| '{' DeclarationList '}'
-	| '{' DeclarationList StatementList '}'
-
-DeclarationList : Declaration
-	| DeclarationList Declaration
+ExpressionStatement : ';'
+	| Expression ';'
 
 StatementList : Statement
 	| StatementList Statement
 
-ExpressionStatement : ';'
-	| Expression ';'
+JumpStatement : GOTO IDENTIFIER ';'
+	| CONTINUE ';'
+	| BREAK ';'
+	| RETURN ';'
+	| RETURN Expression ';'
+
+LabeledStatement : Identifier ':' Statement
+	| CASE Constant ':' Statement
+	| DEFAULT ':' Statement
 
 SelectionStatement : IF '(' Expression ')' Statement
 	| IF '(' Expression ')' Statement ELSE Statement
@@ -138,10 +306,10 @@ IterationStatement : WHILE '(' Expression ')' Statement
 	| FOR '(' ExpressionStatement ExpressionStatement ')' Statement
 	| FOR '(' ExpressionStatement ExpressionStatement Expression ')' Statement
 
-JumpStatement : GOTO Identifier ';'
-	| CONTINUE ';'
-	| BREAK ';'
-	| RETURN OptionalExpression ';'
+CompoundStatement : '{' '}'
+	| '{' StatementList '}'
+	| '{' DeclarationList '}'
+	| '{' DeclarationList StatementList '}'
 
 FunctionDefinition : Declarator CompoundStatement
 	| Declarator DeclarationList CompoundStatement
@@ -152,4 +320,4 @@ ExternalDeclaration : Declaration
 	| FunctionDefinition
 
 TranslationUnit : ExternalDeclaration
-	: TranslationUnit ExternalDeclaration
+	| TranslationUnit ExternalDeclaration
