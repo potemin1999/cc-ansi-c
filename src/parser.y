@@ -1,10 +1,11 @@
 %{
-
+	#include "../parser.h"
 %}
 
 %union {
 	struct AstNode *astNode;
 	char *stringVal;
+	int oper;
 }
 
 // OPERATORS PRECEDENCE BELOW
@@ -41,10 +42,11 @@
 // keywords
 %token ASM BREAK CASE CONTINUE DEFAULT DO ELSE ENUM FOR GOTO IF RETURN SIZEOF STRUCT SWITCH TYPEDEF UNION WHILE ELLIPSIS
 
-%type <stringVal> String
-%type <astNode> Constant UnaryExpression PosfixExpression PrimaryExpression Expression AssignmentExpression OptionalExpression
-%type <astNode> Statement CompountStatement LabeledStatement ExpressionStatement SelectionStatement IterationStatement JumpStatement
-
+%type <stringVal> IDENTIFIER
+%type <oper> AssignmentOperator
+%type <astNode> Constant UnaryExpression PostfixExpression PrimaryExpression Expression AssignmentExpression
+%type <astNode> Statement CompoundStatement LabeledStatement ExpressionStatement SelectionStatement IterationStatement JumpStatement
+%type <astNode> StructDeclarationList StructDeclaratorList
 %%
 
 StorageClassSpecifier : AUTO
@@ -62,12 +64,12 @@ PrimaryExpression : IDENTIFIER
 	| STRING_LITERAL
 	| '(' Expression ')'
 
-PostfixExpression : PrimaryExpression
+PostfixExpression : PrimaryExpression {$$ = $1; }
 	| PostfixExpression '[' Expression ']'
 	| PostfixExpression '(' ')'
 	| PostfixExpression '(' Expression ')'
 	| PostfixExpression '.' IDENTIFIER
-	| PostfixExpression OP_PTR_ACCESS IDENTIFIER
+	| PostfixExpression OP_PTR_ACCESS IDENTIFIER { $$ = new PostfixExpresion($1,$2,$3); }
 	| PostfixExpression OP_INC
 	| PostfixExpression OP_DEC
 
@@ -195,7 +197,7 @@ TypeSpecifier : VOID
 	| TYPE_NAME
 
 SpecifierQualifier : TypeSpecifier
-	| TypeQualifier String
+	| TypeQualifier IDENTIFIER
 
 SpecifierQualifierList : SpecifierQualifier
 	| SpecifierQualifier
@@ -266,7 +268,7 @@ ParameterDeclaration : DeclarationSpecifiers Declarator
     	| DeclarationSpecifiers
 
 ParameterList : ParameterDeclaration
-   	| ParamaterList ',' ParameterDeclaration
+   	| ParameterList ',' ParameterDeclaration
 
 ParameterTypeList : ParameterList
 	|  ParameterList ',' ELLIPSIS
@@ -293,7 +295,7 @@ JumpStatement : GOTO IDENTIFIER ';'
 	| RETURN ';'
 	| RETURN Expression ';'
 
-LabeledStatement : Identifier ':' Statement
+LabeledStatement : IDENTIFIER':' Statement
 	| CASE Constant ':' Statement
 	| DEFAULT ':' Statement
 

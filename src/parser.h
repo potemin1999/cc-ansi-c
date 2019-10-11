@@ -9,10 +9,15 @@ typedef void* AstNode;
 
 #endif //CC_LABS_PARSER_H
 
+struct PrimaryExpression;
+
 struct PostfixExpression {
   PostfixExpression * expression1;
   Operator *oper;
   PrimaryExpression * expression2;
+
+  PostfixExpression(PostfixExpression expr1,Operator oper,PrimaryExpression expr2) :
+  expression1(expr1), oper(oper), expression2(expr2){}
 };
 
 struct UnaryExpression {
