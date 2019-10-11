@@ -284,7 +284,7 @@ struct Initializer {
 };
 
 struct InitializerList {
-    std::list<Initializer*> initializers;
+    std::list<Initializer *> initializers;
 
     explicit InitializerList(Initializer *init) {
         initializers.push_back(init);
@@ -342,14 +342,14 @@ struct StructOrUnionSpecifier {
 
 struct TypeSpecifier {
     int type{};
-    bool isUnion;
+    StructOrUnionSpecifier* structOrUnionSpecifier;
     EnumSpecifier *enumSpecifier{};
 
     TypeSpecifier(int type) : type(type) {}
 
-    TypeSpecifier(bool isUnion) : isUnion(isUnion) {}
-
     TypeSpecifier(EnumSpecifier *enumSpecifier) : enumSpecifier(enumSpecifier) {}
+
+    TypeSpecifier(StructOrUnionSpecifier *structOrUnionSpecifier) : structOrUnionSpecifier(structOrUnionSpecifier) {}
 };
 
 struct SpecifierQualifier {
@@ -363,13 +363,27 @@ struct SpecifierQualifier {
             typeQualifier(typeQualifier), identifier(identifier) {}
 };
 
+struct SpecifierQualifierList {
+    std::list<SpecifierQualifier*> specifierQualifierList;
+
+    explicit SpecifierQualifierList(SpecifierQualifier* specifierQualifier) {
+        addSpecifierQualifier(specifierQualifier);
+    }
+
+    void addSpecifierQualifier(SpecifierQualifier* specifierQualifier) {
+        specifierQualifierList.push_back(specifierQualifier);
+    }
+};
+
 struct Pointer {
-    Pointer *pointer;
-    TypeQualifierList *typeQualifierList;
+    Pointer *pointer{};
+    TypeQualifierList *typeQualifierList{};
 
-    Pointer(Pointer *pointer) : pointer(pointer) {}
+    Pointer() {}
 
-    Pointer(TypeQualifierList *typeQualifierList) : typeQualifierList(typeQualifierList) {};
+    explicit Pointer(Pointer *pointer) : pointer(pointer) {}
+
+    explicit Pointer(TypeQualifierList *typeQualifierList) : typeQualifierList(typeQualifierList) {};
 
     Pointer(Pointer *pointer, TypeQualifierList *typeQualifierList) :
             pointer(pointer), typeQualifierList(typeQualifierList) {};
@@ -389,13 +403,12 @@ struct ParameterTypeList;
 struct IdentifierList;
 
 struct DirectDeclarator : AstNode {
+    bool squared;
     char *identifier{};
     DirectDeclarator *directDeclarator{};
-    union {
-        ParameterTypeList *parameterTypeList;
-        IdentifierList *identifierList{};
-        Constant *constant;
-    };
+    ParameterTypeList *parameterTypeList;
+    IdentifierList *identifierList{};
+    Constant *constant;
 
     explicit DirectDeclarator(char *identifier) : identifier(identifier) {}
 
@@ -409,23 +422,27 @@ struct DirectDeclarator : AstNode {
 
     DirectDeclarator(DirectDeclarator *directDeclarator, Constant *constant) : directDeclarator(
             directDeclarator), constant(constant) {}
+
+    DirectDeclarator(DirectDeclarator *directDeclarator, bool squared) : directDeclarator(
+            directDeclarator), squared(squared) {}
 };
 
 struct AbstractDeclarator;
 
 struct DirectAbstractDeclarator : AstNode {
+    bool squared = false;
     Constant *constant{};
     ParameterTypeList *parameterTypeList{};
     AbstractDeclarator *abstractDeclarator{};
     DirectAbstractDeclarator *directAbstractDeclarator{};
 
-    DirectAbstractDeclarator() = default;
+    explicit DirectAbstractDeclarator(bool squared) : squared(squared) {}
 
     explicit DirectAbstractDeclarator(Constant *constant) : constant(constant) {}
 
-    DirectAbstractDeclarator(ParameterTypeList *parameterTypeList) : parameterTypeList(parameterTypeList) {}
+    explicit DirectAbstractDeclarator(ParameterTypeList *parameterTypeList) : parameterTypeList(parameterTypeList) {}
 
-    DirectAbstractDeclarator(AbstractDeclarator *abstractDeclarator) : abstractDeclarator(abstractDeclarator) {}
+    explicit DirectAbstractDeclarator(AbstractDeclarator *abstractDeclarator) : abstractDeclarator(abstractDeclarator) {}
 
     DirectAbstractDeclarator(DirectAbstractDeclarator *directAbstractDeclarator, Constant *constant)
             : directAbstractDeclarator(directAbstractDeclarator), constant(constant) {}
@@ -433,6 +450,8 @@ struct DirectAbstractDeclarator : AstNode {
     DirectAbstractDeclarator(DirectAbstractDeclarator *directAbstractDeclarator, ParameterTypeList *parameterTypeList)
             : directAbstractDeclarator(directAbstractDeclarator), parameterTypeList(parameterTypeList) {}
 
+    DirectAbstractDeclarator(DirectAbstractDeclarator *directAbstractDeclarator, bool squared)
+            : directAbstractDeclarator(directAbstractDeclarator), squared(squared) {}
 };
 
 struct AbstractDeclarator : AstNode {
@@ -625,11 +644,11 @@ struct Statement : AstNode {
 };
 
 struct ExpressionStatement : Statement {
-    Expression expression{};
+    Expression *expression{};
 
     ExpressionStatement() {};
 
-    ExpressionStatement(Expression exp) :
+    ExpressionStatement(Expression *exp) :
             expression(exp) {};
 };
 
@@ -747,7 +766,7 @@ struct CompoundStatement : Statement {
             declarationList(declList), statementList(statList) {};
 };
 
-struct FunctionDefinition : AstNode{
+struct FunctionDefinition : AstNode {
     Declarator *declarator;
 
     CompoundStatement *compoundStatement{};

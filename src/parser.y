@@ -17,11 +17,13 @@ extern "C"
 	AstNode *astNode;
 	char *stringVal;
         int oper;
+        TypeName *typeName;
         Constant *constant;
         UnaryExpression *unaryExpression;
         PostfixExpression *postfixExpression;
         PrimaryExpression *primaryExpression;
         Expression *expression;
+        Enumerator *enumerator;
         AssignmentExpression *assignmentExpresion;
         Statement *statement;
         CompoundStatement* compoundStatement;
@@ -33,6 +35,8 @@ extern "C"
         StructDeclarationList *structDeclarationList;
         StructDeclaratorList *structDeclaratorList;
         StatementList *statementList;
+        Declaration *declaration;
+        DeclarationList *declarationList;
         Declarator *declarator;
         FunctionDefinition *functionDefinition;
         ExternalDeclaration *externalDeclaration;
@@ -79,7 +83,7 @@ extern "C"
 %token ASM BREAK CASE CONTINUE DEFAULT DO ELSE ENUM FOR GOTO IF RETURN SIZEOF STRUCT SWITCH TYPEDEF UNION WHILE ELLIPSIS
 
 %type <stringVal> IDENTIFIER
-%type <stringVal> TypeName
+%type <typeName> TypeName
 %type <enumerator> Enumerator
 %type <oper> AssignmentOperator
 %type <constant> Constant
@@ -117,10 +121,10 @@ StorageClassSpecifier : AUTO 	{$$ = new StorageClassSpecifier(1); }
 	| STATIC 		{$$ = new StorageClassSpecifier(3); }
 	| EXTERN 		{$$ = new StorageClassSpecifier(4); }
 
-Constant : INT_LITERAL {$$ = new ConstantType(1); }
-	| CHAR_LITERAL {$$ = new ConstantType(2);}
-	| FLOAT_LITERAL {$$ = new ConstantType(3);}
-	| Enumerator {$$ = new ConstantType($1,4);}
+Constant : INT_LITERAL {$$ = new Constant(1); }
+	| CHAR_LITERAL {$$ = new Constant(2);}
+	| FLOAT_LITERAL {$$ = new Constant(3);}
+	| Enumerator {$$ = new Constant($1,4);}
 
 PrimaryExpression : IDENTIFIER
 	| Constant
@@ -235,112 +239,186 @@ InitializerList : Initializer
 IdentifierList : IDENTIFIER
     	| IdentifierList ',' IDENTIFIER
 
-TypeQualifier : CONST | VOLATILE
+TypeQualifier : CONST { $$ = $1; } | VOLATILE { $$ = $1; }
 
 TypeQualifierList : TypeQualifier
+	{ $$ = new TypeQualifierList($1); 	}
 	| TypeQualifierList TypeQualifier
+	{ $1->addTypeQualifier($2); $$ = $1;	}
 
-StructOrUnion : STRUCT | UNION
+StructOrUnion : STRUCT { $$ = $1; } | UNION { $$ = $1; }
 
 StructOrUnionSpecifier : StructOrUnion IDENTIFIER
+	{ $$ = new StructOrUnionSpecifier($1 == UNION,$2);	}
 	| StructOrUnion '{' StructDeclarationList '}'
+	{ $$ = new StructOrUnionSpecifier($1 == UNION,$3);	}
 	| StructOrUnion IDENTIFIER '{' StructDeclarationList '}'
+	{ $$ = new StructOrUnionSpecifier($1 == UNION,$2,$3);	}
 
 TypeSpecifier : VOID
+	{ $$ = new TypeSpecifier($1); }
 	| CHAR
+	{ $$ = new TypeSpecifier($1); }
 	| SHORT
+	{ $$ = new TypeSpecifier($1); }
 	| INT
+	{ $$ = new TypeSpecifier($1); }
 	| LONG
+	{ $$ = new TypeSpecifier($1); }
 	| FLOAT
+	{ $$ = new TypeSpecifier($1); }
 	| DOUBLE
+	{ $$ = new TypeSpecifier($1); }
 	| SIGNED
+	{ $$ = new TypeSpecifier($1); }
 	| UNSIGNED
+	{ $$ = new TypeSpecifier($1); }
 	| StructOrUnionSpecifier
+	{ $$ = new TypeSpecifier($1); }
 	| EnumSpecifier
+	{ $$ = new TypeSpecifier($1); }
 	| TYPE_NAME
+	{ $$ = new TypeSpecifier($1); }
 
 SpecifierQualifier : TypeSpecifier
+	{ $$ = new SpecifierQualifier($1);	}
 	| TypeQualifier IDENTIFIER
+	{ $$ = new SpecifierQualifier($1,$2);	}
 
 SpecifierQualifierList : SpecifierQualifier
-	| SpecifierQualifier
+	{ $$ = new SpecifierQualifierList($1); 		}
+	| SpecifierQualifierList SpecifierQualifier
+	{ $1->addSpecifierQualifier($2); $$ = $1;	}
 
 Pointer : '*'
+	{ $$ = new Pointer();		}
    	| '*' Pointer
+   	{ $$ = new Pointer($2);		}
    	| '*' TypeQualifierList
+   	{ $$ = new Pointer($2);		}
    	| '*' TypeQualifierList Pointer
+   	{ $$ = new Pointer($3,$2);	}
 
 Declarator : Pointer DirectDeclarator
+	{ $$ = new Declarator($1,$2);		}
     	| DirectDeclarator
+    	{ $$ = new Declarator(nullptr,$2);	}
 
 DirectDeclarator : IDENTIFIER
+	{ $$ = new DirectDeclarator($1);	}
     	| '(' Declarator ')'
+    	{ $$ = new DirectDeclarator($2);	}
     	| DirectDeclarator '(' ')'
+    	{ $$ = new DirectDeclarator($1,false);	}
     	| DirectDeclarator '[' ']'
+    	{ $$ = new DirectDeclarator($1,true);	}
     	| DirectDeclarator '(' ParameterTypeList ')'
+    	{ $$ = new DirectDeclarator($1,$3);	}
     	| DirectDeclarator '(' IdentifierList ')'
+    	{ $$ = new DirectDeclarator($1,$3);	}
     	| DirectDeclarator '[' Constant ']'
+    	{ $$ = new DirectDeclarator($1,$3);	}
 
 DirectAbstractDeclarator : '[' ']'
+	{ $$ = new DirectAbstractDeclarator(true);	}
    	| '[' Constant ']'
+   	{ $$ = new DirectAbstractDeclarator($1);	}
    	| '(' ')'
+   	{ $$ = new DirectAbstractDeclarator(false);	}
    	| '(' ParameterTypeList ')'
+   	{ $$ = new DirectAbstractDeclarator($1);	}
    	| '(' AbstractDeclarator ')'
+   	{ $$ = new DirectAbstractDeclarator($1);	}
    	| DirectAbstractDeclarator '[' ']'
+   	{ $$ = new DirectAbstractDeclarator($1,true);	}
    	| DirectAbstractDeclarator '[' Constant ']'
+   	{ $$ = new DirectAbstractDeclarator($1,$1);	}
    	| DirectAbstractDeclarator '(' ')'
+   	{ $$ = new DirectAbstractDeclarator($1,false);	}
    	| DirectAbstractDeclarator '(' ParameterTypeList ')'
+   	{ $$ = new DirectAbstractDeclarator($1,$1);	}
 
 AbstractDeclarator : Pointer
+	{ $$ = new AbstractDeclarator($1);	}
     	| DirectAbstractDeclarator
+    	{ $$ = new AbstractDeclarator($1);	}
     	| Pointer DirectAbstractDeclarator
+    	{ $$ = new AbstractDeclarator($1,$2);	}
 
 InitDeclarator : Declarator
+	{ $$ = new InitDeclarator($1);		}
 	| Declarator '=' Initializer
+	{ $$ = new InitDeclarator($1,$2);	}
 
 InitDeclaratorList : InitDeclarator
+	{ $$ = new InitDeclaratorList($1);	}
 	| InitDeclaratorList ',' InitDeclarator
+	{ $1->adDeclarator($3);	$$ = $1;	}
 
 DeclarationSpecifiers : StorageClassSpecifier
+	{ $$ = new DeclarationSpecifiers(new DeclarationSpecifier($1));	}
 	| TypeSpecifier
+	{ $$ = new DeclarationSpecifiers(new DeclarationSpecifier($1));	}
 	| TypeQualifier
+	{ $$ = new DeclarationSpecifiers(new DeclarationSpecifier($1));	}
 	| StorageClassSpecifier DeclarationSpecifiers
+	{ $2->addDeclarationSpecifier(new DeclarationSpecifier($1)); $$ = $2;	}
 	| TypeSpecifier DeclarationSpecifiers
+	{ $2->addDeclarationSpecifier(new DeclarationSpecifier($1)); $$ = $2;	}
 	| TypeQualifier DeclarationSpecifiers
+	{ $2->addDeclarationSpecifier(new DeclarationSpecifier($1)); $$ = $2;	}
 
 Declaration : DeclarationSpecifiers ';'
+	{ $$ = new Declaration($1);	}
 	| DeclarationSpecifiers InitDeclaratorList ';'
+	{ $$ = new Declaration($1,$2);	}
 
 DeclarationList : Declaration
+	{ $$ = new DeclarationList($1);		}
 	| DeclarationList Declaration
+	{ $1->addDeclaration($2); $$ = $1;	}
 
 StructDeclarator : Declarator
+	{ $$ = = new StructDeclarator($1);	}
 	| Declarator ':' Constant
+	{ $$ = = new StructDeclarator($1,$2);	}
 	| ':' Constant
+	{ $$ = = new StructDeclarator($1);	}
 
 StructDeclaratorList : StructDeclarator
+	{ $$ = new StructDeclaratorList($1);	}
 	| StructDeclaratorList StructDeclarator
+	{ $1->addStructDeclarator($2); $$ = $1;	}
 
 StructDeclaration : SpecifierQualifierList StructDeclaratorList ';'
+	{ $$ = new StructDeclaration($1,$2);		}
 
 StructDeclarationList : StructDeclaration
+	{ $$ = new StructDeclarationList($1);		}
 	| StructDeclarationList StructDeclaration
-
-NonEmptyStructDeclarationList : StructDeclarator
-	| NonEmptyStructDeclarationList StructDeclarator
+	{ $1->addStructDeclaration($2); $$ = $1;	}
 
 ParameterDeclaration : DeclarationSpecifiers Declarator
+	{ $$ = new ParameterDeclaration($1,$2); 	}
     	| DeclarationSpecifiers AbstractDeclarator
+    	{ $$ = new ParameterDeclaration($1,$2);		}
     	| DeclarationSpecifiers
+    	{ $$ = new ParameterDeclaration($1);		}
 
 ParameterList : ParameterDeclaration
+	{ $$ = new ParameterList($1);			}
    	| ParameterList ',' ParameterDeclaration
+   	{ $1->addParameterDeclaration($3), $$ = $1;	}
 
 ParameterTypeList : ParameterList
+	{ $$ = new ParameterTypeList($1, false); 	}
 	|  ParameterList ',' ELLIPSIS
+	{ $$ = new ParameterTypeList($1, true); 	}
 
-TypeName : SpecifierQualifierList {$$ = $1; }
-    	| SpecifierQualifierList AbstractDeclarator {$$ = $1, $2; }
+TypeName : SpecifierQualifierList
+	{ $$ = new TypeName($1); 	}
+    	| SpecifierQualifierList AbstractDeclarator
+    	{ $$ = new TypeName($1, $2); 	}
 
 Statement : LabeledStatement 	{ $$ = $1; }
 	| ExpressionStatement 	{ $$ = $1; }
@@ -350,45 +428,75 @@ Statement : LabeledStatement 	{ $$ = $1; }
 	| JumpStatement		{ $$ = $1; }
 
 ExpressionStatement : ';'
-	| Expression ';' {$$ = $1}
+	{ $$ = new ExpressionStatement();	}
+	| Expression ';'
+	{ $$ = new ExpressionStatement($1);	}
 
-StatementList : Statement {$$ = $1}
-	| StatementList Statement {$$ = $1, $2}
+StatementList : Statement
+	{ $$ = new StatementList($1); 		}
+	| StatementList Statement
+	{ $1->addStatement($2); $$ = $1;	}
 
-JumpStatement : GOTO IDENTIFIER ';' {$$ = $2, 0 ;}
-	| CONTINUE ';' {$$ = 1 ;}
-	| BREAK ';' {$$ = 2 ;}
-	| RETURN ';' {$$ = 3}
-	| RETURN Expression ';' {$$ = $2, 4}
+JumpStatement : GOTO IDENTIFIER ';'
+	{ $$ = new JumpStatement($2, 0 );	}
+	| CONTINUE ';'
+	{ $$ = new JumpStatement(1);		}
+	| BREAK ';'
+	{ $$ = new JumpStatement(2);		}
+	| RETURN ';'
+	{ $$ = new JumpStatement(3); 		}
+	| RETURN Expression ';'
+	{ $$ = new JumpStatement($2, 4);	}
 
-LabeledStatement : IDENTIFIER ':' Statement {$$ = $1, $3 0}
-	| CASE Constant ':' Statement {$$ = $2, $4, 1}
-	| DEFAULT ':' Statement {$$ = $3, 2}
+LabeledStatement : IDENTIFIER ':' Statement
+	{ $$ = new LabeledStatement($1, $3);	}
+	| CASE Constant ':' Statement
+	{ $$ = new LabeledStatement($2, $4, 1); 	}
+	| DEFAULT ':' Statement
+	{ $$ = new LabeledStatement($3); 	}
 
-SelectionStatement : IF '(' Expression ')' Statement {$$ = $3, $5, 0 ;}
-	| IF '(' Expression ')' Statement ELSE Statement {$$ = $3, $5, $7, 1 ;}
-	| SWITCH '(' Expression ')' Statement {$$ = $3, $5, 0 ;}
+SelectionStatement : IF '(' Expression ')' Statement
+	{ $$ = new SelectionStatement($3, $5, 0);	}
+	| IF '(' Expression ')' Statement ELSE Statement
+	{ $$ = new SelectionStatement($3, $5, $7, 1);	}
+	| SWITCH '(' Expression ')' Statement
+	{ $$ = new SelectionStatement($3, $5, 0 ); 	}
 
-IterationStatement : WHILE '(' Expression ')' Statement {$$ = $3, $5, 0 ;}
-	| DO Statement WHILE '(' Expression ')' ';' {$$ = $2, $5, 1 ;}
-	| FOR '(' ExpressionStatement ExpressionStatement ')' Statement {$$ = $3, $4, $6, 2 ;}
-	| FOR '(' ExpressionStatement ExpressionStatement Expression ')' Statement  {$$ = $3, $4, $5, $7, 3 ;}
+IterationStatement : WHILE '(' Expression ')' Statement
+	{ $$ = new IterationStatement($3, $5, 0 );		}
+	| DO Statement WHILE '(' Expression ')' ';'
+	{ $$ = new IterationStatement($2, $5, 1);		}
+	| FOR '(' ExpressionStatement ExpressionStatement ')' Statement
+	{ $$ = new IterationStatement($3, $4, $6, 2);		}
+	| FOR '(' ExpressionStatement ExpressionStatement Expression ')' Statement
+	{ $$ = new IterationStatement($3, $4, $5, $7, 3);	}
 
 CompoundStatement : '{' '}'
-	| '{' StatementList '}' {$$ = new CompoundStatement($2); }
-	| '{' DeclarationList '}' {$$ = new $2; }
-	| '{' DeclarationList StatementList '}' {$$ = $2, $3; }
+	| '{' StatementList '}'
+	{ $$ = new CompoundStatement($2); 	}
+	| '{' DeclarationList '}'
+	{ $$ = new CompoundStatement($2); 	}
+	| '{' DeclarationList StatementList '}'
+	{ $$ = new CompoundStatement($2, $3); 	}
 
-FunctionDefinition : Declarator CompoundStatement {$$ = $1, $2; }
-	| Declarator DeclarationList CompoundStatement {$$ = $1, $2, $3; }
-	| DeclarationSpecifiers Declarator CompoundStatement {$$ = $1, $2, $3; }
-	| DeclarationSpecifiers Declarator DeclarationList CompoundStatement {$$ = $1, $2, $3, $4; }
+FunctionDefinition : Declarator CompoundStatement
+	{ $$ = new FunctionDefinition($1, $2); 		}
+	| Declarator DeclarationList CompoundStatement
+	{ $$ = new FunctionDefinition($1, $2, $3); 	}
+	| DeclarationSpecifiers Declarator CompoundStatement
+	{ $$ = new FunctionDefinition($1, $2, $3); 	}
+	| DeclarationSpecifiers Declarator DeclarationList CompoundStatement
+	{ $$ = new FunctionDefinition($1, $2, $3, $4); 	}
 
-ExternalDeclaration : Declaration {$$ = new ExternalDeclaration($1); }
-	| FunctionDefinition {$$ = new ExternalDeclaration($1); }
+ExternalDeclaration : Declaration
+	{ $$ = new ExternalDeclaration($1); }
+	| FunctionDefinition
+	{ $$ = new ExternalDeclaration($1); }
 
-TranslationUnit : ExternalDeclaration { $$ = new TranslationUnti($1); }
-	| TranslationUnit ExternalDeclaration {$$ = $1, $2; }
+TranslationUnit : ExternalDeclaration
+	{ $$ = new TranslationUnit($1); }
+	| TranslationUnit ExternalDeclaration
+	{ $1->addExternalDeclaration($2); $$ = $1; }
 
 %%
 
