@@ -49,15 +49,15 @@
 %type <astNode> StructDeclarationList StructDeclaratorList
 %%
 
-StorageClassSpecifier : AUTO
-	| REGISTER
-	| STATIC
-	| EXTERN
+StorageClassSpecifier : AUTO {$$ = 0}
+	| REGISTER {$$ = 1}
+	| STATIC {$$ = 2}
+	| EXTERN {$$ = 3}
 
-Constant : INT_LITERAL
-	| CHAR_LITERAL
-	| FLOAT_LITERAL
-	| Enumerator
+Constant : INT_LITERAL {$$ = 0}
+	| CHAR_LITERAL {$$ = 1}
+	| FLOAT_LITERAL {$$ = 2}
+	| Enumerator {$$ = $1, 3}
 
 PrimaryExpression : IDENTIFIER
 	| Constant
@@ -149,9 +149,8 @@ AssignmentExpression : ConditionalExpression
 Expression : AssignmentExpression
 	| Expression ',' AssignmentExpression
 
-// TODO begin
-ArgumentExpressionList : AssignmentExpression
-    	| ArgumentExpressionList ',' AssignmentExpression
+ArgumentExpressionList : AssignmentExpression {$$ = $1}
+    	| ArgumentExpressionList ',' AssignmentExpression {$$ = $1, $3}
 
 Enumerator : IDENTIFIER
     	| IDENTIFIER '=' Constant
@@ -285,10 +284,10 @@ Statement : LabeledStatement 	{ $$ = $1; }
 	| JumpStatement		{ $$ = $1; }
 
 ExpressionStatement : ';'
-	| Expression ';'
+	| Expression ';' {$$ = $1}
 
-StatementList : Statement
-	| StatementList Statement
+StatementList : Statement {$$ = $1}
+	| StatementList Statement {$$ = $1, $2}
 
 JumpStatement : GOTO IDENTIFIER ';' {$$ = $2, 0 ;}
 	| CONTINUE ';' {$$ = 1 ;}
