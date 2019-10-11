@@ -72,12 +72,19 @@ struct PrimaryExpression : Expression {
 };
 
 struct PostfixExpression : Expression {
-    PostfixExpression *expression1;
-    Operator oper;
-    PrimaryExpression *expression2;
+    PostfixExpression *expression1{};
+    Operator oper{};
+    PrimaryExpression *expression2{};
+
+    Expression *expression;
 
     PostfixExpression(PostfixExpression *expr1, Operator oper, PrimaryExpression *expr2) :
             expression1(expr1), oper(oper), expression2(expr2) {}
+
+    explicit PostfixExpression(PostfixExpression *expr1, Expression *expression) :
+            expression1(expr1), expression(expression) {}
+
+
 };
 
 struct UnaryExpression;
@@ -97,10 +104,14 @@ struct CastExpression : Expression {
 };
 
 struct UnaryExpression : Expression {
-    Operator oper;
+    int oper;
     Expression *expr;
 
-    UnaryExpression(Operator oper, Expression *expression) :
+    char *sizeOfIdentifier;
+
+    UnaryExpression(char *sizeOfIdentifier) : sizeOfIdentifier(sizeOfIdentifier) {}
+
+    UnaryExpression(int oper, Expression *expression) :
             Expression(),
             oper(oper), expr(expression) {}
 };
@@ -213,7 +224,8 @@ struct LogicalOrExpression : Expression {
 };
 
 struct ConditionalExpression : Expression {
-    ConditionalExpression(LogicalOrExpression *expression1, Expression *expression2, ConditionalExpression *expression3):
+    ConditionalExpression(LogicalOrExpression *expression1, Expression *expression2, ConditionalExpression *expression3)
+            :
             expression1(expression1), expression2(expression2), expression3(expression3) {}
 
     LogicalOrExpression *expression1{};
@@ -224,13 +236,13 @@ struct ConditionalExpression : Expression {
 struct AssignmentExpression : Expression {
     ConditionalExpression *conditionalExpression;
     UnaryExpression *unaryExpression;
-    Operator *oper;
+    int oper;
     AssignmentExpression *assignmentExpression;
 
     AssignmentExpression(ConditionalExpression *expression) :
             conditionalExpression(expression) {};
 
-    AssignmentExpression(UnaryExpression *unary, Operator *oper, AssignmentExpression *assignment) :
+    AssignmentExpression(UnaryExpression *unary, int oper, AssignmentExpression *assignment) :
             unaryExpression(unary), oper(oper), assignmentExpression(assignment) {};
 };
 
@@ -243,20 +255,20 @@ struct Enumerator {
 };
 
 struct EnumeratorList {
-    std::list<Enumerator> enumerators;
+    std::list<Enumerator *> enumerators;
 
-    explicit EnumeratorList(Enumerator enumerator) {
+    explicit EnumeratorList(Enumerator *enumerator) {
         enumerators.push_back(enumerator);
     }
 
-    void addEnumerator(Enumerator enumerator){
+    void addEnumerator(Enumerator *enumerator) {
         enumerators.push_back(enumerator);
     }
 };
 
 struct EnumSpecifier {
-    char *identifier {};
-    EnumeratorList *enumeratorList {};
+    char *identifier{};
+    EnumeratorList *enumeratorList{};
 
     EnumSpecifier(char *identifier, EnumeratorList *enumeratorList) :
             identifier(identifier), enumeratorList(enumeratorList) {};
@@ -333,9 +345,13 @@ struct StructOrUnionSpecifier {
 };
 
 struct TypeSpecifier {
+    char *identifier;
+
     int type{};
-    StructOrUnionSpecifier* structOrUnionSpecifier;
+    StructOrUnionSpecifier *structOrUnionSpecifier;
     EnumSpecifier *enumSpecifier{};
+
+    TypeSpecifier(char *identifier) : identifier(identifier) {}
 
     TypeSpecifier(int type) : type(type) {}
 
@@ -356,13 +372,13 @@ struct SpecifierQualifier {
 };
 
 struct SpecifierQualifierList {
-    std::list<SpecifierQualifier*> specifierQualifierList;
+    std::list<SpecifierQualifier *> specifierQualifierList;
 
-    explicit SpecifierQualifierList(SpecifierQualifier* specifierQualifier) {
+    explicit SpecifierQualifierList(SpecifierQualifier *specifierQualifier) {
         addSpecifierQualifier(specifierQualifier);
     }
 
-    void addSpecifierQualifier(SpecifierQualifier* specifierQualifier) {
+    void addSpecifierQualifier(SpecifierQualifier *specifierQualifier) {
         specifierQualifierList.push_back(specifierQualifier);
     }
 };
@@ -397,6 +413,7 @@ struct IdentifierList;
 struct DirectDeclarator : AstNode {
     bool squared;
     char *identifier{};
+    Declarator *declarator;
     DirectDeclarator *directDeclarator{};
     ParameterTypeList *parameterTypeList;
     IdentifierList *identifierList{};
@@ -404,7 +421,7 @@ struct DirectDeclarator : AstNode {
 
     explicit DirectDeclarator(char *identifier) : identifier(identifier) {}
 
-    explicit DirectDeclarator(DirectDeclarator *directDeclarator) : directDeclarator(directDeclarator) {}
+    explicit DirectDeclarator(Declarator *declarator) : declarator(declarator) {}
 
     DirectDeclarator(DirectDeclarator *directDeclarator, ParameterTypeList *parameterTypeList) : directDeclarator(
             directDeclarator), parameterTypeList(parameterTypeList) {}
@@ -434,7 +451,8 @@ struct DirectAbstractDeclarator : AstNode {
 
     explicit DirectAbstractDeclarator(ParameterTypeList *parameterTypeList) : parameterTypeList(parameterTypeList) {}
 
-    explicit DirectAbstractDeclarator(AbstractDeclarator *abstractDeclarator) : abstractDeclarator(abstractDeclarator) {}
+    explicit DirectAbstractDeclarator(AbstractDeclarator *abstractDeclarator) : abstractDeclarator(
+            abstractDeclarator) {}
 
     DirectAbstractDeclarator(DirectAbstractDeclarator *directAbstractDeclarator, Constant *constant)
             : directAbstractDeclarator(directAbstractDeclarator), constant(constant) {}

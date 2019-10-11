@@ -18,34 +18,66 @@ extern "C"
 	char *stringVal;
         int oper;
         TypeName *typeName;
-        Constant *constant;
-        UnaryExpression *unaryExpression;
-        PostfixExpression *postfixExpression;
-        PrimaryExpression *primaryExpression;
-        Expression *expression;
-        Enumerator *enumerator;
-        AssignmentExpression *assignmentExpresion;
-        Statement *statement;
-        CompoundStatement* compoundStatement;
-        LabeledStatement *labeledStatement;
-        ExpressionStatement *expressionStatement;
-        SelectionStatement *selectionStatement;
-        IterationStatement *iterationStatement;
-        JumpStatement *jumpStatement;
-        StructDeclarationList *structDeclarationList;
-        StructDeclaratorList *structDeclaratorList;
-        StatementList *statementList;
-        Declaration *declaration;
-        DeclarationList *declarationList;
-        Declarator *declarator;
-        FunctionDefinition *functionDefinition;
-        ExternalDeclaration *externalDeclaration;
-        TranslationUnit *translationUnit;
-        DeclarationSpecifiers *declarationSpecifiers;
-        StorageClassSpecifier *storageClassSpecifier;
-        ArgumentExpressionList *argumentExpressionList;
-        SpecifierQualifierList *specifierQualifierList;
-        AbstractDeclarator *abstractDeclarator;
+	IdentifierList *identifierList;
+	Pointer *pointer;
+	Enumerator *enumerator;
+	Constant *constant;
+	EnumeratorList *enumeratorList;
+	EnumSpecifier *enumSpecifier;
+	int unaryOperator;
+	UnaryExpression *unaryExpression;
+	PostfixExpression *postfixExpression;
+	PrimaryExpression *primaryExpression;
+	CastExpression *castExpression;
+	MultiplicativeExpression *multExpression;
+	AdditiveExpression *additiveExpression;
+	ShiftExpression *shiftExpression;
+	RelationalExpression *relationalExpression;
+	EqualityExpression *equalityExpression;
+	AndExpression *andExpression;
+	ExclusiveOrExpression *exclusiveOrExpression;
+	InclusiveOrExpression *inclusiveOrExpression;
+	LogicalAndExpression *logicalAndExpression;
+	LogicalOrExpression *logicalOrExpression;
+	Expression *expression;
+	AssignmentExpression *assignmentExpresion;
+	Statement *statement;
+	ConditionalExpression *conditionalStatement;
+	CompoundStatement *compoundStatement;
+	LabeledStatement *labeledStatement;
+	ExpressionStatement *expressionStatement;
+	SelectionStatement *selectionStatement;
+	IterationStatement *iterationStatement;
+	JumpStatement *jumpStatement;
+	InitDeclarator *initDeclarator;
+	StructDeclarator *structDeclarator;
+	StructDeclaration *structDeclaration;
+	StructDeclarationList *structDeclarationList;
+	StructDeclaratorList *structDeclaratorList;
+	StatementList *statementList;
+	Declarator *declarator;
+	DirectAbstractDeclarator *directAbstractDeclarator;
+	DirectDeclarator *directDeclarator;
+	Declaration *declaration;
+	DeclarationList *declarationList;
+	FunctionDefinition *functionDefinition;
+	ExternalDeclaration *externalDeclaration;
+	TranslationUnit *translationUnit;
+	DeclarationSpecifiers *declarationSpecifiers;
+	StorageClassSpecifier *storageClassSpecifier;
+	SpecifierQualifierList *specifierQualifierList;
+	AbstractDeclarator *abstractDeclarator;
+	int typeQualifier;
+	TypeSpecifier *typeSpecifier;
+	TypeQualifierList *typeQualifierList;
+	SpecifierQualifier *specifierQualifier;
+	StructOrUnionSpecifier *structOrUnionSpecifier;
+	InitDeclaratorList *initDeclaratorList;
+	Initializer *initializer;
+	InitializerList *initializerList;
+	ParameterList *parameterList;
+	ParameterTypeList *parameterTypeList;
+	ParameterDeclaration *parameterDeclaration;
 }
 
 // OPERATORS PRECEDENCE BELOW
@@ -83,26 +115,48 @@ extern "C"
 %token ASM BREAK CASE CONTINUE DEFAULT DO ELSE ENUM FOR GOTO IF RETURN SIZEOF STRUCT SWITCH TYPEDEF UNION WHILE ELLIPSIS
 
 %type <stringVal> IDENTIFIER
+%type <identifierList> IdentifierList
+%type <pointer> Pointer
 %type <typeName> TypeName
 %type <enumerator> Enumerator
 %type <oper> AssignmentOperator
 %type <constant> Constant
+%type <enumeratorList> EnumeratorList
+%type <enumSpecifier> EnumSpecifier
+%type <unaryOperator> UnaryOperator
 %type <unaryExpression> UnaryExpression
 %type <postfixExpression> PostfixExpression
 %type <primaryExpression> PrimaryExpression
+%type <castExpression> CastExpression
+%type <multExpression> MultiplicativeExpression
+%type <additiveExpression> AdditiveExpression
+%type <shiftExpression> ShiftExpression
+%type <relationalExpression> RelationalExpression
+%type <equalityExpression> EqualityExpression
+%type <andExpression> AndExpression
+%type <exclusiveOrExpression> ExclusiveOrExpression
+%type <inclusiveOrExpression> InclusiveOrExpression
+%type <logicalAndExpression> LogicalAndExpression
+%type <logicalOrExpression> LogicalOrExpression
 %type <expression> Expression
 %type <assignmentExpresion> AssignmentExpression
 %type <statement> Statement
+%type <conditionalStatement> ConditionalExpression
 %type <compoundStatement> CompoundStatement
 %type <labeledStatement> LabeledStatement
 %type <expressionStatement> ExpressionStatement
 %type <selectionStatement> SelectionStatement
 %type <iterationStatement> IterationStatement
 %type <jumpStatement> JumpStatement
+%type <initDeclarator> InitDeclarator
+%type <structDeclarator> StructDeclarator
+%type <structDeclaration> StructDeclaration
 %type <structDeclarationList> StructDeclarationList
 %type <structDeclaratorList> StructDeclaratorList
 %type <statementList> StatementList
 %type <declarator> Declarator
+%type <directAbstractDeclarator> DirectAbstractDeclarator
+%type <directDeclarator> DirectDeclarator
 %type <declaration> Declaration
 %type <declarationList> DeclarationList
 %type <functionDefinition> FunctionDefinition
@@ -110,9 +164,20 @@ extern "C"
 %type <translationUnit> TranslationUnit
 %type <declarationSpecifiers> DeclarationSpecifiers
 %type <storageClassSpecifier> StorageClassSpecifier
-%type <argumentExpressionList> ArgumentExpressionList
 %type <specifierQualifierList> SpecifierQualifierList
 %type <abstractDeclarator> AbstractDeclarator
+%type <typeQualifier> TypeQualifier
+%type <typeSpecifier> TypeSpecifier
+%type <typeQualifierList> TypeQualifierList
+%type <specifierQualifier> SpecifierQualifier
+%type <oper> StructOrUnion
+%type <structOrUnionSpecifier> StructOrUnionSpecifier
+%type <initDeclaratorList> InitDeclaratorList
+%type <initializer> Initializer
+%type <initializerList> InitializerList
+%type <parameterList> ParameterList
+%type <parameterTypeList> ParameterTypeList
+%type <parameterDeclaration> ParameterDeclaration
 
 %%
 
@@ -131,98 +196,97 @@ PrimaryExpression : IDENTIFIER
 	| STRING_LITERAL
 	| '(' Expression ')'
 
-PostfixExpression : PrimaryExpression {$$ = $1; }
-	| PostfixExpression '[' Expression ']' {$$ = new PostfixExpression($1, 0, $3);}
-	| PostfixExpression '(' ')'{ $$ = new PostfixExpresion($1, 1, nullptr); }
-	| PostfixExpression '(' ArgumentExpressionList ')' { $$ = new PostfixExpresion($1, 1, $3); }
-	| PostfixExpression '.' IDENTIFIER { $$ = new PostfixExpresion($1, 2, new PrimaryExpression($3)); }
+PostfixExpression : PrimaryExpression {$$ = new PostfixExpression(nullptr,0, $1); }
+	| PostfixExpression '[' Expression ']' {$$ = new PostfixExpression($1, $3);}
+	| PostfixExpression '(' ')'{ $$ = new PostfixExpression($1, 1, nullptr); }
+	| PostfixExpression '.' IDENTIFIER { $$ = new PostfixExpression($1, 2, new PrimaryExpression($3)); }
 	| PostfixExpression OP_PTR_ACCESS IDENTIFIER { $$ = new PostfixExpression($1, OP_PTR_ACCESS, new PrimaryExpression($3)); }
-	| PostfixExpression OP_INC {$$ = new PostfixExpression($1, $2, nullptr);}
-	| PostfixExpression OP_DEC {$$ = new PostfixExpression($1, $2, nullptr);}
+	| PostfixExpression OP_INC {$$ = new PostfixExpression($1, OP_INC, nullptr);}
+	| PostfixExpression OP_DEC {$$ = new PostfixExpression($1, OP_DEC, nullptr);}
 
-UnaryOperator : '&' {$$ = 0}
-	| '*' {$$ = 1}
-	| '+' {$$ = 2}
-	| '-' {$$ = 3}
-	| '~' {$$ = 4}
-	| '!' {$$ = 5}
+UnaryOperator : '&' {$$ = 0;}
+	| '*' {$$ = 1;}
+	| '+' {$$ = 2;}
+	| '-' {$$ = 3;}
+	| '~' {$$ = 4;}
+	| '!' {$$ = 5;}
 
 UnaryExpression : PostfixExpression {$$ = new UnaryExpression(0, $1);}
-    	| OP_INC UnaryExpression {$$ = new UnaryExpression($1, $2);}
-    	| OP_DEC UnaryExpression {$$ = new UnaryExpression($1, $2);}
+    	| OP_INC UnaryExpression {$$ = new UnaryExpression(OP_INC, $2);}
+    	| OP_DEC UnaryExpression {$$ = new UnaryExpression(OP_DEC, $2);}
     	| UnaryOperator CastExpression {$$ = new UnaryExpression($1, $2);}
-    	| SIZEOF UnaryExpression {$$ = new UnaryExpression($1, $2);}
-    	| SIZEOF '(' TypeName ')' {$$ = new UnaryExpression($1, $3);}
+    	| SIZEOF UnaryExpression {$$ = new UnaryExpression(SIZEOF, $2);}
+    	| SIZEOF '(' IDENTIFIER ')' {$$ = new UnaryExpression($3);}
 
-CastExpression : UnaryExpression {$$ = $1}
-    	| '(' TypeName ')' CastExpression {$$ = new CastExpression($2, $4);}
+CastExpression : UnaryExpression {$$ = new CastExpression($1);}
+    	| '(' IDENTIFIER ')' CastExpression {$$ = new CastExpression($2, $4);}
 
-MultiplicativeExpression : CastExpression {$$ = $1}
+MultiplicativeExpression : CastExpression {$$ = new MultiplicativeExpression($1); }
 	| MultiplicativeExpression '*' CastExpression {$$ = new MultiplicativeExpression($1, 0, $3);}
 	| MultiplicativeExpression '/' CastExpression {$$ = new MultiplicativeExpression($1, 1, $3);}
 	| MultiplicativeExpression '%' CastExpression {$$ = new MultiplicativeExpression($1, 2, $3);}
 
-AdditiveExpression : MultiplicativeExpression {$$ = $1}
+AdditiveExpression : MultiplicativeExpression {$$ = new AdditiveExpression($1); }
     	| AdditiveExpression '+' MultiplicativeExpression {$$ = new AdditiveExpression($1, 0, $3);}
     	| AdditiveExpression '-' MultiplicativeExpression {$$ = new AdditiveExpression($1, 1, $3);}
 
-ShiftExpression : AdditiveExpression {$$ = $1}
-   	| ShiftExpression OP_L_SHIFT AdditiveExpression {$$ = new ShiftExpression($1, $2, $3);}
-   	| ShiftExpression OP_R_SHIFT AdditiveExpression {$$ = new ShiftExpression($1, $2, $3);}
+ShiftExpression : AdditiveExpression {$$ = new ShiftExpression($1); }
+   	| ShiftExpression OP_L_SHIFT AdditiveExpression {$$ = new ShiftExpression($1, OP_L_SHIFT, $3);}
+   	| ShiftExpression OP_R_SHIFT AdditiveExpression {$$ = new ShiftExpression($1, OP_R_SHIFT, $3);}
 
-RelationalExpression: ShiftExpression {$$ = $1}
-    	| RelationalExpression '<' ShiftExpression {$$ = new RelationalExpression($1, 0, $3);}
-    	| RelationalExpression '>' ShiftExpression {$$ = new RelationalExpression($1, 1, $3);}
-    	| RelationalExpression OP_LE_THAN ShiftExpression {$$ = new RelationalExpression($1, $2, $3);}
-    	| RelationalExpression OP_GE_THAN ShiftExpression {$$ = new RelationalExpression($1, $2, $3);}
+RelationalExpression: ShiftExpression {$$ = new RelationalExpression($1); }
+    	| RelationalExpression '<' ShiftExpression {$$ = new RelationalExpression($1, 100, $3);}
+    	| RelationalExpression '>' ShiftExpression {$$ = new RelationalExpression($1, 101, $3);}
+    	| RelationalExpression OP_LE_THAN ShiftExpression {$$ = new RelationalExpression($1, OP_LE_THAN, $3);}
+    	| RelationalExpression OP_GE_THAN ShiftExpression {$$ = new RelationalExpression($1, OP_GE_THAN, $3);}
 
-EqualityExpression : RelationalExpression {$$ = $1}
-    	| EqualityExpression OP_EQ_TO RelationalExpression {$$ = new EqualityExpression($1, $2, $3);}
-    	| EqualityExpression OP_NEQ_TO RelationalExpression {$$ = new EqualityExpression($1, $2, $3);}
+EqualityExpression : RelationalExpression {$$ = new EqualityExpression($1); }
+    	| EqualityExpression OP_EQ_TO RelationalExpression {$$ = new EqualityExpression($1, OP_EQ_TO, $3);}
+    	| EqualityExpression OP_NEQ_TO RelationalExpression {$$ = new EqualityExpression($1, OP_NEQ_TO, $3);}
 
-AndExpression : EqualityExpression {$$ = $1}
+AndExpression : EqualityExpression {$$ = new AndExpression(nullptr,$1); }
     	| AndExpression '&' EqualityExpression {$$ = new AndExpression($1, $3);}
 
-ExclusiveOrExpression : AndExpression {$$ = $1}
+ExclusiveOrExpression : AndExpression {$$ = new ExclusiveOrExpression(nullptr,$1); }
     	| ExclusiveOrExpression '^' AndExpression {$$ = new ExclusiveOrExpression($1, $3);}
 
-InclusiveOrExpression : ExclusiveOrExpression {$$ = $1}
+InclusiveOrExpression : ExclusiveOrExpression {$$ = new InclusiveOrExpression(nullptr,$1); }
     	| InclusiveOrExpression '|' ExclusiveOrExpression {$$ = new InclusiveOrExpression($1, $3);}
 
-LogicalAndExpression : InclusiveOrExpression {$$ = $1}
-    	| LogicalAndExpression OP_AND InclusiveOrExpression {$$ = new LogicalEndExpression($1, $3);}
+LogicalAndExpression : InclusiveOrExpression {$$ = new LogicalAndExpression(nullptr,$1); }
+    	| LogicalAndExpression OP_AND InclusiveOrExpression {$$ = new LogicalAndExpression($1, $3);}
 
-LogicalOrExpression : LogicalAndExpression {$$ = new LogicalAndExpression(nullptr, $1);}
-    	| LogicalOrExpression OP_OR LogicalAndExpression {$$ = $1}
+LogicalOrExpression : LogicalAndExpression {$$ = new LogicalOrExpression(nullptr,$1); }
+    	| LogicalOrExpression OP_OR LogicalAndExpression {$$ = new LogicalOrExpression($1,$3); }
 
-ConditionalExpression : LogicalOrExpression {$$ = $1}
-    	| LogicalOrExpression '?' Expression ':' ConditionalExpression {$$ = new ConditionalExpression($1, $2, $3);}
+ConditionalExpression : LogicalOrExpression {$$ = new ConditionalExpression($1,nullptr,nullptr);}
+    	| LogicalOrExpression '?' Expression ':' ConditionalExpression {$$ = new ConditionalExpression($1, $3, $5);}
 
-AssignmentOperator : '='    {$$ = 0}
-    	| OP_MUL_ASSIGN     {$$ = $1}
-    	| OP_DIV_ASSIGN     {$$ = $1}
-    	| OP_MOD_ASSIGN     {$$ = $1}
-    	| OP_ADD_ASSIGN     {$$ = $1}
-    	| OP_SUB_ASSIGN     {$$ = $1}
-    	| OP_L_SHIFT_ASSIGN {$$ = $1}
-    	| OP_R_SHIFT_ASSIGN {$$ = $1}
-    	| OP_AND_ASSIGN     {$$ = $1}
-    	| OP_XOR_ASSIGN     {$$ = $1}
-    	| OP_OR_ASSIGN      {$$ = $1}
+AssignmentOperator : '='    {$$ = 0; }
+    	| OP_MUL_ASSIGN     {$$ = OP_MUL_ASSIGN; }
+    	| OP_DIV_ASSIGN     {$$ = OP_DIV_ASSIGN;}
+    	| OP_MOD_ASSIGN     {$$ = OP_MOD_ASSIGN;}
+    	| OP_ADD_ASSIGN     {$$ = OP_ADD_ASSIGN;}
+    	| OP_SUB_ASSIGN     {$$ = OP_SUB_ASSIGN;}
+    	| OP_L_SHIFT_ASSIGN {$$ = OP_L_SHIFT_ASSIGN;}
+    	| OP_R_SHIFT_ASSIGN {$$ = OP_R_SHIFT_ASSIGN;}
+    	| OP_AND_ASSIGN     {$$ = OP_AND_ASSIGN;}
+    	| OP_XOR_ASSIGN     {$$ = OP_XOR_ASSIGN;}
+    	| OP_OR_ASSIGN      {$$ = OP_OR_ASSIGN;}
 
-AssignmentExpression : ConditionalExpression {$$ = $1}
+AssignmentExpression : ConditionalExpression {$$ = new AssignmentExpression($1); }
 	| UnaryExpression AssignmentOperator AssignmentExpression { $$ = new AssignmentExpression($1, $2, $3);}
 
-Expression : AssignmentExpression { $$ = $1}
-	| Expression ',' AssignmentExpression {$$ = $1, $3} //TODO maybe fix this
+Expression : AssignmentExpression { $$ = $1; }
+	| Expression ',' AssignmentExpression {$$ = $3; } //TODO maybe fix this
 
 Enumerator : IDENTIFIER  {$$ = new Enumerator($1, nullptr);}
     	| IDENTIFIER '=' Constant {$$ = new Enumerator($1, $3);}
 
 EnumeratorList : Enumerator {$$ = new EnumeratorList($1);}
-    	| EnumeratorList ',' Enumerator {$$ = $1->addEnumerator($3);}
+    	| EnumeratorList ',' Enumerator {$1->addEnumerator($3); $$ = $1;}
 
-EnumSpecifier : ENUM IDENTIFIER {$$ = new EnumSpecifier($1, nullptr);}
+EnumSpecifier : ENUM IDENTIFIER {$$ = new EnumSpecifier($2, nullptr);}
     	| ENUM '{' EnumeratorList '}' {$$ = new EnumSpecifier(nullptr, $3);}
     	| ENUM IDENTIFIER '{' EnumeratorList '}' {$$ = new EnumSpecifier($2, $4);}
 
@@ -231,50 +295,50 @@ Initializer : AssignmentExpression {$$ = new Initializer($1);}
     	| '{' InitializerList ',' '}' {$$ = new Initializer($2);}
 
 InitializerList : Initializer {$$ = new InitializerList($1);}
-    	| InitializerList ',' Initializer {$$ = $1 -> addInitializer($3);}
+    	| InitializerList ',' Initializer {$1 -> addInitializer($3); $$ = $1;}
 
 IdentifierList : IDENTIFIER {$$ = new IdentifierList($1);}
-    	| IdentifierList ',' IDENTIFIER {$$ = $1 -> addIdentifier($3);}
+    	| IdentifierList ',' IDENTIFIER {$1 -> addIdentifier($3); $$ = $1;}
 
-TypeQualifier : CONST { $$ = $1; } | VOLATILE { $$ = $1; }
+TypeQualifier : CONST { $$ = CONST; } | VOLATILE { $$ = VOLATILE; }
 
 TypeQualifierList : TypeQualifier
 	{ $$ = new TypeQualifierList($1); 	}
 	| TypeQualifierList TypeQualifier
 	{ $1->addTypeQualifier($2); $$ = $1;	}
 
-StructOrUnion : STRUCT { $$ = $1; } | UNION { $$ = $1; }
+StructOrUnion : STRUCT { $$ = STRUCT; } | UNION { $$ = UNION; }
 
 StructOrUnionSpecifier : StructOrUnion IDENTIFIER
 	{ $$ = new StructOrUnionSpecifier($1 == UNION,$2);	}
 	| StructOrUnion '{' StructDeclarationList '}'
 	{ $$ = new StructOrUnionSpecifier($1 == UNION,$3);	}
 	| StructOrUnion IDENTIFIER '{' StructDeclarationList '}'
-	{ $$ = new StructOrUnionSpecifier($1 == UNION,$2,$3);	}
+	{ $$ = new StructOrUnionSpecifier($1 == UNION,$2,$4);	}
 
 TypeSpecifier : VOID
-	{ $$ = new TypeSpecifier($1); }
+	{ $$ = new TypeSpecifier(VOID); }
 	| CHAR
-	{ $$ = new TypeSpecifier($1); }
+	{ $$ = new TypeSpecifier(CHAR); }
 	| SHORT
-	{ $$ = new TypeSpecifier($1); }
+	{ $$ = new TypeSpecifier(SHORT); }
 	| INT
-	{ $$ = new TypeSpecifier($1); }
+	{ $$ = new TypeSpecifier(INT); }
 	| LONG
-	{ $$ = new TypeSpecifier($1); }
+	{ $$ = new TypeSpecifier(LONG); }
 	| FLOAT
-	{ $$ = new TypeSpecifier($1); }
+	{ $$ = new TypeSpecifier(FLOAT); }
 	| DOUBLE
-	{ $$ = new TypeSpecifier($1); }
+	{ $$ = new TypeSpecifier(DOUBLE); }
 	| SIGNED
-	{ $$ = new TypeSpecifier($1); }
+	{ $$ = new TypeSpecifier(SIGNED); }
 	| UNSIGNED
-	{ $$ = new TypeSpecifier($1); }
+	{ $$ = new TypeSpecifier(UNSIGNED); }
 	| StructOrUnionSpecifier
 	{ $$ = new TypeSpecifier($1); }
 	| EnumSpecifier
 	{ $$ = new TypeSpecifier($1); }
-	| TYPE_NAME
+	| IDENTIFIER
 	{ $$ = new TypeSpecifier($1); }
 
 SpecifierQualifier : TypeSpecifier
@@ -299,7 +363,7 @@ Pointer : '*'
 Declarator : Pointer DirectDeclarator
 	{ $$ = new Declarator($1,$2);		}
     	| DirectDeclarator
-    	{ $$ = new Declarator(nullptr,$2);	}
+    	{ $$ = new Declarator(nullptr,$1);	}
 
 DirectDeclarator : IDENTIFIER
 	{ $$ = new DirectDeclarator($1);	}
@@ -319,21 +383,21 @@ DirectDeclarator : IDENTIFIER
 DirectAbstractDeclarator : '[' ']'
 	{ $$ = new DirectAbstractDeclarator(true);	}
    	| '[' Constant ']'
-   	{ $$ = new DirectAbstractDeclarator($1);	}
+   	{ $$ = new DirectAbstractDeclarator($2);	}
    	| '(' ')'
    	{ $$ = new DirectAbstractDeclarator(false);	}
    	| '(' ParameterTypeList ')'
-   	{ $$ = new DirectAbstractDeclarator($1);	}
+   	{ $$ = new DirectAbstractDeclarator($2);	}
    	| '(' AbstractDeclarator ')'
-   	{ $$ = new DirectAbstractDeclarator($1);	}
+   	{ $$ = new DirectAbstractDeclarator($2);	}
    	| DirectAbstractDeclarator '[' ']'
    	{ $$ = new DirectAbstractDeclarator($1,true);	}
    	| DirectAbstractDeclarator '[' Constant ']'
-   	{ $$ = new DirectAbstractDeclarator($1,$1);	}
+   	{ $$ = new DirectAbstractDeclarator($1,$3);	}
    	| DirectAbstractDeclarator '(' ')'
    	{ $$ = new DirectAbstractDeclarator($1,false);	}
    	| DirectAbstractDeclarator '(' ParameterTypeList ')'
-   	{ $$ = new DirectAbstractDeclarator($1,$1);	}
+   	{ $$ = new DirectAbstractDeclarator($1,$3);	}
 
 AbstractDeclarator : Pointer
 	{ $$ = new AbstractDeclarator($1);	}
@@ -345,12 +409,12 @@ AbstractDeclarator : Pointer
 InitDeclarator : Declarator
 	{ $$ = new InitDeclarator($1);		}
 	| Declarator '=' Initializer
-	{ $$ = new InitDeclarator($1,$2);	}
+	{ $$ = new InitDeclarator($1,$3);	}
 
 InitDeclaratorList : InitDeclarator
 	{ $$ = new InitDeclaratorList($1);	}
 	| InitDeclaratorList ',' InitDeclarator
-	{ $1->adDeclarator($3);	$$ = $1;	}
+	{ $1->addDeclarator($3); $$ = $1;	}
 
 DeclarationSpecifiers : StorageClassSpecifier
 	{ $$ = new DeclarationSpecifiers(new DeclarationSpecifier($1));	}
@@ -376,11 +440,11 @@ DeclarationList : Declaration
 	{ $1->addDeclaration($2); $$ = $1;	}
 
 StructDeclarator : Declarator
-	{ $$ = = new StructDeclarator($1);	}
+	{ $$ = new StructDeclarator($1);	}
 	| Declarator ':' Constant
-	{ $$ = = new StructDeclarator($1,$2);	}
+	{ $$ = new StructDeclarator($1,$3);	}
 	| ':' Constant
-	{ $$ = = new StructDeclarator($1);	}
+	{ $$ = new StructDeclarator($2);	}
 
 StructDeclaratorList : StructDeclarator
 	{ $$ = new StructDeclaratorList($1);	}
