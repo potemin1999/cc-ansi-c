@@ -3,6 +3,6 @@ project(cc_labs)
 
 set(CMAKE_CXX_STANDARD 14)
 
-file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "src/*.c" "src/generated/*.c")
+file(GLOB_RECURSE SOURCE_FILES "src/*.cpp" "src/*.c" "src/generated/*.c" "src/generated/*.cc")
 add_executable(ansi_c ${SOURCE_FILES})
 target_link_libraries(ansi_c "stdc++")

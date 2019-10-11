@@ -7,10 +7,11 @@
  */
 
 #include <cstdio>
+#include <FlexLexer.h>
 #include "parser.h"
 #include "generated/y.tab.hpp"
 
-extern "C" {
+//extern "C" {
 
 int GetIdentType() {
     return 0;
@@ -20,11 +21,14 @@ void yyerror(const char *str) {
     fprintf(stdout, "Parsing error: %s\n", str);
 }
 
+yyFlexLexer lexer;
 
-void yylex();
+void yylex(){
+    lexer.yylex();
+}
 
 int main(int argc, const char **argv) {
     yyparse();
 }
 
-}
+//}

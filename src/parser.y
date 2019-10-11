@@ -1,83 +1,75 @@
 %{
-extern "C"
-{
-        int yyparse(void);
+        int yyparse();
         int yyerror(const char *msg);
-        int yylex(void);
-        int yywrap()
-        {
-                return 1;
-        }
-
-}
+        int yylex();
 #include "../parser.h"
 %}
 
 %union {
-	AstNode *astNode;
 	char *stringVal;
         int oper;
-        TypeName *typeName;
-	IdentifierList *identifierList;
-	Pointer *pointer;
-	Enumerator *enumerator;
-	Constant *constant;
-	EnumeratorList *enumeratorList;
-	EnumSpecifier *enumSpecifier;
-	int unaryOperator;
-	UnaryExpression *unaryExpression;
-	PostfixExpression *postfixExpression;
-	PrimaryExpression *primaryExpression;
-	CastExpression *castExpression;
-	MultiplicativeExpression *multExpression;
-	AdditiveExpression *additiveExpression;
-	ShiftExpression *shiftExpression;
-	RelationalExpression *relationalExpression;
-	EqualityExpression *equalityExpression;
-	AndExpression *andExpression;
-	ExclusiveOrExpression *exclusiveOrExpression;
-	InclusiveOrExpression *inclusiveOrExpression;
-	LogicalAndExpression *logicalAndExpression;
-	LogicalOrExpression *logicalOrExpression;
-	Expression *expression;
-	AssignmentExpression *assignmentExpresion;
-	Statement *statement;
-	ConditionalExpression *conditionalStatement;
-	CompoundStatement *compoundStatement;
-	LabeledStatement *labeledStatement;
-	ExpressionStatement *expressionStatement;
-	SelectionStatement *selectionStatement;
-	IterationStatement *iterationStatement;
-	JumpStatement *jumpStatement;
-	InitDeclarator *initDeclarator;
-	StructDeclarator *structDeclarator;
-	StructDeclaration *structDeclaration;
-	StructDeclarationList *structDeclarationList;
-	StructDeclaratorList *structDeclaratorList;
-	StatementList *statementList;
-	Declarator *declarator;
-	DirectAbstractDeclarator *directAbstractDeclarator;
-	DirectDeclarator *directDeclarator;
-	Declaration *declaration;
-	DeclarationList *declarationList;
-	FunctionDefinition *functionDefinition;
-	ExternalDeclaration *externalDeclaration;
-	TranslationUnit *translationUnit;
-	DeclarationSpecifiers *declarationSpecifiers;
-	StorageClassSpecifier *storageClassSpecifier;
-	SpecifierQualifierList *specifierQualifierList;
-	AbstractDeclarator *abstractDeclarator;
-	int typeQualifier;
-	TypeSpecifier *typeSpecifier;
-	TypeQualifierList *typeQualifierList;
-	SpecifierQualifier *specifierQualifier;
-	StructOrUnionSpecifier *structOrUnionSpecifier;
-	InitDeclaratorList *initDeclaratorList;
-	Initializer *initializer;
-	InitializerList *initializerList;
-	ParameterList *parameterList;
-	ParameterTypeList *parameterTypeList;
-	ParameterDeclaration *parameterDeclaration;
+        int unaryOperator;
+        int typeQualifier;
+        struct AstNode *astNode;
+        struct TypeName *typeName;
+	struct IdentifierList *identifierList;
+	struct Pointer *pointer;
+	struct Enumerator *enumerator;
+	struct Constant *constant;
+	struct EnumeratorList *enumeratorList;
+	struct EnumSpecifier *enumSpecifier;
+	struct UnaryExpression *unaryExpression;
+	struct PostfixExpression *postfixExpression;
+	struct PrimaryExpression *primaryExpression;
+	struct CastExpression *castExpression;
+	struct MultiplicativeExpression *multExpression;
+	struct AdditiveExpression *additiveExpression;
+	struct ShiftExpression *shiftExpression;
+	struct RelationalExpression *relationalExpression;
+	struct EqualityExpression *equalityExpression;
+	struct AndExpression *andExpression;
+	struct ExclusiveOrExpression *exclusiveOrExpression;
+	struct InclusiveOrExpression *inclusiveOrExpression;
+	struct LogicalAndExpression *logicalAndExpression;
+	struct LogicalOrExpression *logicalOrExpression;
+	struct Expression *expression;
+	struct AssignmentExpression *assignmentExpresion;
+	struct Statement *statement;
+	struct ConditionalExpression *conditionalStatement;
+	struct CompoundStatement *compoundStatement;
+	struct LabeledStatement *labeledStatement;
+	struct ExpressionStatement *expressionStatement;
+	struct SelectionStatement *selectionStatement;
+	struct IterationStatement *iterationStatement;
+	struct JumpStatement *jumpStatement;
+	struct InitDeclarator *initDeclarator;
+	struct StructDeclarator *structDeclarator;
+	struct StructDeclaration *structDeclaration;
+	struct StructDeclarationList *structDeclarationList;
+	struct StructDeclaratorList *structDeclaratorList;
+	struct StatementList *statementList;
+	struct Declarator *declarator;
+	struct DirectAbstractDeclarator *directAbstractDeclarator;
+	struct DirectDeclarator *directDeclarator;
+	struct Declaration *declaration;
+	struct DeclarationList *declarationList;
+	struct FunctionDefinition *functionDefinition;
+	struct ExternalDeclaration *externalDeclaration;
+	struct TranslationUnit *translationUnit;
+	struct DeclarationSpecifiers *declarationSpecifiers;
+	struct StorageClassSpecifier *storageClassSpecifier;
+	struct SpecifierQualifierList *specifierQualifierList;
+	struct AbstractDeclarator *abstractDeclarator;
+	struct TypeSpecifier *typeSpecifier;
+	struct TypeQualifierList *typeQualifierList;
+	struct SpecifierQualifier *specifierQualifier;
+	struct StructOrUnionSpecifier *structOrUnionSpecifier;
+	struct InitDeclaratorList *initDeclaratorList;
+	struct Initializer *initializer;
+	struct InitializerList *initializerList;
+	struct ParameterList *parameterList;
+	struct ParameterTypeList *parameterTypeList;
+	struct ParameterDeclaration *parameterDeclaration;
 }
 
 // OPERATORS PRECEDENCE BELOW
