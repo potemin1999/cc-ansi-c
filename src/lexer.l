@@ -5,8 +5,8 @@ HEX     [a-fA-F0-9]
 HEX_P   (0[xX])
 L       [a-zA-Z_]
 L_DEC   [a-zA-Z_0-9]
-FP_E    ([Ee][+-]?{D}+)
-FP_P    ([Pp][+-]?{D}+)
+FP_E    ([Ee][+-]?{DEC}+)
+FP_P    ([Pp][+-]?{DEC}+)
 F_SPEC  (f|F|l|L)
 I_SPEC  (((u|U)(l|L|ll|LL)?)|((l|L|ll|LL)(u|U)?))
 C_SPEC  (u|U|L)
@@ -17,7 +17,7 @@ L_W     [ \t\v\n\f]
 %{
 #include "y.tab.h"
 static int GetIdentType();
-}%
+%}
 
 %%
 
@@ -110,23 +110,23 @@ _Imaginary  { return IMAGINARY; }
 ">"			{ return '>'; }
 "?"			{ return '?'; }
 
-{L}{L_DEC   { return GetIdentType();    }
+{L}{L_DEC}   { return GetIdentType();    }
 
 {HEX_P}{HEX}+{I_SPEC}?              { return INT_LITERAL;   }
 {DEC_NZ}{DEC}*{I_SPEC}?             { return INT_LITERAL;   }
 "0"{OCT}*{I_SPEC}?                  { return INT_LITERAL;   }
 {C_SPEC}?"'"([^'\\\n]|{L_ESC})+"'"  { return INT_LITERAL;   }
 
-{DEC}+{FP_E}{F_SPEC}?				    { return F_CONSTANT; }
-{DEC}*"."{DEC}+{FP_E}?{F_SPEC}?			{ return F_CONSTANT; }
-{DEC}+"."{FP_E}?{F_SPEC}?			    { return F_CONSTANT; }
-{HEX_P}{HEX}+{FP_P}{F_SPEC}?			{ return F_CONSTANT; }
-{HEX_P}{HEX}*"."{HEX}+{FP_P}{F_SPEC}?	{ return F_CONSTANT; }
-{HEX_P}{HEX}+"."{FP_P}{F_SPEC}?			{ return F_CONSTANT; }
+{DEC}+{FP_E}{F_SPEC}?				    { return FLOAT_LITERAL; }
+{DEC}*"."{DEC}+{FP_E}?{F_SPEC}?			{ return FLOAT_LITERAL; }
+{DEC}+"."{FP_E}?{F_SPEC}?			    { return FLOAT_LITERAL; }
+{HEX_P}{HEX}+{FP_P}{F_SPEC}?			{ return FLOAT_LITERAL; }
+{HEX_P}{HEX}*"."{HEX}+{FP_P}{F_SPEC}?	{ return FLOAT_LITERAL; }
+{HEX_P}{HEX}+"."{FP_P}{F_SPEC}?			{ return FLOAT_LITERAL; }
 
 ({S_SPEC}?\"([^"\\\n]|{L_ESC})*\"{L_W}*)+	{ return STRING_LITERAL; }
 
-{WS}+       { /* skip whitespaces  */   }
+{L_W}+      { /* skip whitespaces  */   }
 .           { /* skip unrecognised */   }
 
 <<EOF>>     { return EOF;               }

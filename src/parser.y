@@ -274,12 +274,12 @@ ParameterTypeList : ParameterList
 TypeName : SpecifierQualifierList
     	| SpecifierQualifierList AbstractDeclarator
 
-Statement : LabeledStatement { $$ = $1; }
-	| ExpressionStatement
-	| CompoundStatement
-	| SelectionStatement
-	| IterationStatement
-	| JumpStatement
+Statement : LabeledStatement 	{ $$ = $1; }
+	| ExpressionStatement 	{ $$ = $1; }
+	| CompoundStatement   	{ $$ = $1; }
+	| SelectionStatement	{ $$ = $1; }
+	| IterationStatement	{ $$ = $1; }
+	| JumpStatement		{ $$ = $1; }
 
 ExpressionStatement : ';'
 	| Expression ';'
