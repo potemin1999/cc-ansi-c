@@ -8,9 +8,9 @@
 #ifndef CC_LABS_PARSER_H
 #define CC_LABS_PARSER_H
 
-typedef void* AstNode;
-
 #endif //CC_LABS_PARSER_H
+
+struct AstNode{};
 
 struct PrimaryExpression;
 
@@ -94,7 +94,6 @@ struct ConditionalExpression {
     Expression *expression2;
     ConditionalExpression *expression3;
 };
-
 
 struct Pointer;
 struct DirectDeclarator;
@@ -330,4 +329,100 @@ struct ParameterTypeList : AstNode {
 
     explicit ParameterTypeList(ParameterList *parameterList, bool withEllipsis) :
             parameterList(parameterList), withEllipsis(withEllipsis) {}
+
+  
+struct Declaration;
+
+struct TypeName{
+    SpecifierQualifierList specifierQualifierList;
+    AbstractDeclarator declarator{};
+
+    // TODO Fix initialization
+    TypeName(SpecifierQualifierList list) :
+        specifierQualifierList(list){};
+
+    // TODO Fix initialization
+    TypeName(SpecifierQualifierList list, AbstractDeclarator decl) :
+        specifierQualifierList(list), declarator(decl){};
+};
+
+struct Statement{
+};
+
+struct ExpressionStatement : Statement{
+    Expression expression{};
+};
+
+struct StatementList{
+    std::list<Statement> statements;
+};
+
+
+struct JumpStatement : Statement{
+    int keyword;
+    char* identifier;
+    Expression expression;
+};
+
+// TODO: keyword?
+struct LabeledStatement : Statement{
+    char* identifier{};
+    Constant constant{};
+    Statement statement;
+};
+
+// TODO keyword?
+struct SelectionStatement : Statement{
+    Expression expression;
+    Statement statement1;
+    Statement statement2;
+};
+
+// TODO keyword?
+struct IterationStatement : Statement{
+
+    Expression expression;
+    Statement statement;
+    ExpressionStatement
+};
+
+struct CompoundStatement : Statement{
+    StatementList statementList;
+    DeclarationList declarationList;
+};
+
+struct FunctionDefinition {
+    Declarator declarator;
+
+    CompoundStatement compoundStatement{};
+    DeclarationSpecifiers declarationSpecifiers{};
+    DeclarationList declarationList{};
+
+    FunctionDefinition(Declarator decl, CompoundStatement statement) :
+        declarator(decl), compoundStatement(statement){};
+
+    FunctionDefinition(Declarator decl, DeclarationList declList, CompoundStatement statement) :
+        declarator(decl), declarationList(declList), compoundStatement(statement){};
+
+    FunctionDefinition(DeclarationSpecifiers specifiers, Declarator decl, CompoundStatement statement) :
+        declarator(decl), declarationSpecifiers(specifiers), compoundStatement(statement){};
+
+    FunctionDefinition(DeclarationSpecifiers specifiers, Declarator decl, DeclarationList declList, CompoundStatement statement) :
+        declarator(decl), declarationSpecifiers(specifiers), declarationList(declList), compoundStatement(statement){};
+};
+
+struct ExternalDeclaration : AstNode{
+    Declaration declaration{};
+    FunctionDefinition funcDefinition{};
+
+    ExternalDeclaration(Declaration decl) :
+        declaration(decl){}
+
+    ExternalDeclaration(FunctionDefinition definition) :
+        funcDefinition(definition){}
+};
+
+struct TranslationUnit : AstNode{
+    std::list<ExternalDeclaration> declarations;
+
 };
