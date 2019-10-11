@@ -127,13 +127,13 @@ PrimaryExpression : IDENTIFIER
 	| STRING_LITERAL
 	| '(' Expression ')'
 
-PostfixExpression : PrimaryExpression
-	| PostfixExpression '[' Expression ']'
-	| PostfixExpression '(' ')'
-	| PostfixExpression '(' Expression ')'
-	| PostfixExpression '.' IDENTIFIER
-	| PostfixExpression OP_PTR_ACCESS IDENTIFIER { $$ = new PostfixExpresion($1,OP_PTR_ACCESS,$3); }
-	| PostfixExpression OP_INC
+PostfixExpression : PrimaryExpression {$$ = $1; }
+	| PostfixExpression '[' Expression ']' {$$ = $1, $2, $3}
+	| PostfixExpression '(' ')'{ $$ = new PostfixExpresion($1, $2, nullptr); }
+	| PostfixExpression '(' Expression ')' { $$ = new PostfixExpresion($1, $2, $3); }
+	| PostfixExpression '.' IDENTIFIER { $$ = new PostfixExpresion($1, $2, new PrimaryExpression($3)); }
+	| PostfixExpression OP_PTR_ACCESS IDENTIFIER { $$ = $1, OP_PTR_ACCESS,new PrimaryExpression($3)); }
+	| PostfixExpression OP_INC {$$ = $1, $2, nullptr}
 	| PostfixExpression OP_DEC
 
 UnaryOperator : '&'
