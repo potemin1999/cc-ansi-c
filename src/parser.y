@@ -149,6 +149,7 @@ AssignmentExpression : ConditionalExpression
 Expression : AssignmentExpression
 	| Expression ',' AssignmentExpression
 
+// TODO begin
 ArgumentExpressionList : AssignmentExpression
     	| ArgumentExpressionList ',' AssignmentExpression
 
@@ -273,8 +274,8 @@ ParameterList : ParameterDeclaration
 ParameterTypeList : ParameterList
 	|  ParameterList ',' ELLIPSIS
 
-TypeName : SpecifierQualifierList
-    	| SpecifierQualifierList AbstractDeclarator
+TypeName : SpecifierQualifierList {$$ = $1; }
+    	| SpecifierQualifierList AbstractDeclarator {$$ = $1, $2; }
 
 Statement : LabeledStatement 	{ $$ = $1; }
 	| ExpressionStatement 	{ $$ = $1; }
@@ -289,37 +290,37 @@ ExpressionStatement : ';'
 StatementList : Statement
 	| StatementList Statement
 
-JumpStatement : GOTO IDENTIFIER ';'
-	| CONTINUE ';'
-	| BREAK ';'
-	| RETURN ';'
-	| RETURN Expression ';'
+JumpStatement : GOTO IDENTIFIER ';' {$$ = $2, 0 ;}
+	| CONTINUE ';' {$$ = 1 ;}
+	| BREAK ';' {$$ = 2 ;}
+	| RETURN ';' {$$ = 3}
+	| RETURN Expression ';' {$$ = $ 2, 4}
 
-LabeledStatement : IDENTIFIER':' Statement
-	| CASE Constant ':' Statement
-	| DEFAULT ':' Statement
+LabeledStatement : IDENTIFIER ':' Statement {$$ = $1, $3 0}
+	| CASE Constant ':' Statement {$$ = $2, $4, 1}
+	| DEFAULT ':' Statement {$$ = $3, 2}
 
-SelectionStatement : IF '(' Expression ')' Statement
-	| IF '(' Expression ')' Statement ELSE Statement
-	| SWITCH '(' Expression ')' Statement
+SelectionStatement : IF '(' Expression ')' Statement {$$ = $3, $5, 0 ;}
+	| IF '(' Expression ')' Statement ELSE Statement {$$ = $3, $5, $7, 1 ;}
+	| SWITCH '(' Expression ')' Statement {$$ = $3, $5, 0 ;}
 
-IterationStatement : WHILE '(' Expression ')' Statement
-	| DO Statement WHILE '(' Expression ')' ';'
-	| FOR '(' ExpressionStatement ExpressionStatement ')' Statement
-	| FOR '(' ExpressionStatement ExpressionStatement Expression ')' Statement
+IterationStatement : WHILE '(' Expression ')' Statement {$$ = $3, $5, 0 ;}
+	| DO Statement WHILE '(' Expression ')' ';' {$$ = $2, $5, 1 ;}
+	| FOR '(' ExpressionStatement ExpressionStatement ')' Statement {$$ = $3, $4, $6, 2 ;}
+	| FOR '(' ExpressionStatement ExpressionStatement Expression ')' Statement  {$$ = $3, $4, $5, $7, 3 ;}
 
 CompoundStatement : '{' '}'
-	| '{' StatementList '}'
-	| '{' DeclarationList '}'
-	| '{' DeclarationList StatementList '}'
+	| '{' StatementList '}' {$$ = $2; }
+	| '{' DeclarationList '}' {$$ = $2; }
+	| '{' DeclarationList StatementList '}' {$$ = $2, $3; }
 
-FunctionDefinition : Declarator CompoundStatement
-	| Declarator DeclarationList CompoundStatement
-	| DeclarationSpecifiers Declarator CompoundStatement
-	| DeclarationSpecifiers Declarator DeclarationList CompoundStatement
+FunctionDefinition : Declarator CompoundStatement {$$ = $1, $2; }
+	| Declarator DeclarationList CompoundStatement {$$ = $1, $2, $3; }
+	| DeclarationSpecifiers Declarator CompoundStatement {$$ = $1, $2, $3; }
+	| DeclarationSpecifiers Declarator DeclarationList CompoundStatement {$$ = $1, $2, $3, $4; }
 
-ExternalDeclaration : Declaration
-	| FunctionDefinition
+ExternalDeclaration : Declaration {$$ = new Declaration($1); }
+	| FunctionDefinition {$$ = new FunctionDefinition($1); }
 
-TranslationUnit : ExternalDeclaration
-	| TranslationUnit ExternalDeclaration
+TranslationUnit : ExternalDeclaration {$$ = $1; }
+	| TranslationUnit ExternalDeclaration {$$ = $1, $2; }
