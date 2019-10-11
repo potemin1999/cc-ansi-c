@@ -3,13 +3,18 @@
  */
 
 #include <list>
+#include <utility>
 
 #ifndef CC_LABS_PARSER_H
 #define CC_LABS_PARSER_H
 
 #endif //CC_LABS_PARSER_H
 
-struct AstNode{};
+struct AstNode {
+};
+
+struct ExternalDeclaration : AstNode {
+};
 
 struct PrimaryExpression;
 
@@ -96,95 +101,169 @@ struct ConditionalExpression {
 
 struct Declaration;
 
-struct TypeName{
+struct TypeName : AstNode{
     SpecifierQualifierList specifierQualifierList;
     AbstractDeclarator declarator{};
 
-    // TODO Fix initialization
-    TypeName(SpecifierQualifierList list) :
-        specifierQualifierList(list){};
+    explicit TypeName(SpecifierQualifierList list) :
+            specifierQualifierList(list) {};
 
-    // TODO Fix initialization
-    TypeName(SpecifierQualifierList list, AbstractDeclarator decl) :
-        specifierQualifierList(list), declarator(decl){};
+    explicit TypeName(SpecifierQualifierList list, AbstractDeclarator decl) :
+            specifierQualifierList(list), declarator(decl) {};
 };
 
-struct Statement{
+struct Statement : AstNode {
 };
 
-struct ExpressionStatement : Statement{
+struct ExpressionStatement : Statement {
     Expression expression{};
+
+    ExpressionStatement() {};
+
+    ExpressionStatement(Expression exp) :
+        expression(exp){};
 };
 
-struct StatementList{
+struct StatementList : AstNode {
     std::list<Statement> statements;
+
+    StatementList() {};
+
+    StatementList(Statement stat) {
+        statements.push_back(stat);
+    }
+
+    StatementList(const StatementList &statList, Statement stat) : statements(statList.statements) {
+        statements.push_back(stat);
+    }
 };
 
+enum JumpStatementType {
+    GOTO, CONTINUE, BREAK, RETURN
+};
 
-struct JumpStatement : Statement{
-    int keyword;
-    char* identifier;
+struct JumpStatement : Statement {
+    char *identifier;
     Expression expression;
+    JumpStatementType type;
+
+    explicit JumpStatement(int t) :
+            type(JumpStatementType(t)) {};
+
+    explicit JumpStatement(char *id, int t) :
+            identifier(id), type(JumpStatementType(t)) {};
+
+    explicit JumpStatement(Expression exp, int t) :
+            expression(exp), type(JumpStatementType(t)) {};
 };
 
-// TODO: keyword?
-struct LabeledStatement : Statement{
-    char* identifier{};
+struct LabeledStatement : Statement {
+    char *identifier{};
     Constant constant{};
     Statement statement;
+
+    explicit LabeledStatement(Statement stat) :
+            statement(stat) {};
+
+    explicit LabeledStatement(char *id, Statement stat) :
+            identifier(id), statement(stat) {};
+
+    explicit LabeledStatement(Constant c, Statement stat, int t) :
+            constant(c), statement(stat) {};
 };
 
-// TODO keyword?
-struct SelectionStatement : Statement{
+enum SelectionStatementType {
+    IF = 0, IF_ELSE = 1, SWITCH = 2
+};
+
+struct SelectionStatement : Statement {
     Expression expression;
     Statement statement1;
-    Statement statement2;
+    Statement statement2{};
+    SelectionStatementType type;
+
+    explicit SelectionStatement(Expression exp, Statement stat, int t) :
+            expression(exp), statement1(stat), type(SelectionStatementType(t)) {};
+
+    explicit SelectionStatement(Expression exp, Statement stat1, Statement stat2, int t) :
+            expression(exp), statement1(stat1), statement2(stat2), type(SelectionStatementType(t)) {};
 };
 
-// TODO keyword?
-struct IterationStatement : Statement{
+enum IterationStatementType {
+    WHILE = 0, DO_WHILE = 1, FOREACH = 2, FORI = 3
+};
 
-    Expression expression;
+struct IterationStatement : Statement {
     Statement statement;
-    ExpressionStatement
+
+    Expression expression{};
+    ExpressionStatement expressionStatement1{};
+    ExpressionStatement expressionStatement2{};
+
+    IterationStatementType type;
+
+    IterationStatement(Expression exp, Statement stat, int t) :
+            expression(exp), statement(stat), type(IterationStatementType(t)) {};
+
+    IterationStatement(Statement stat, Expression exp, int t) :
+            statement(stat), expression(exp), type(IterationStatementType(t)) {};
+
+    IterationStatement(ExpressionStatement exp1, ExpressionStatement exp2, Statement stat, int t) :
+            expressionStatement1(exp1), expressionStatement2(exp2), statement(stat), type(IterationStatementType(t)) {};
+
+    IterationStatement(ExpressionStatement expStat1, ExpressionStatement expStat2, Expression exp, Statement stat,
+                       int t) :
+            expressionStatement1(expStat1), expressionStatement2(expStat2), expression(exp), statement(stat),
+            type(IterationStatementType(t)) {};
 };
 
-struct CompoundStatement : Statement{
-    StatementList statementList;
-    DeclarationList declarationList;
+struct CompoundStatement : Statement {
+    StatementList statementList{};
+    DeclarationList declarationList{};
+
+    CompoundStatement() = default;;
+
+    explicit CompoundStatement(StatementList list) :
+            statementList(std::move(list)) {};
+
+    explicit CompoundStatement(DeclarationList list) :
+            declarationList(std::move(list)) {};
+
+    explicit CompoundStatement(DeclarationList declList, StatementList statList) :
+            declarationList(std::move(declList)), statementList(std::move(statList)) {};
 };
 
-struct FunctionDefinition {
+struct FunctionDefinition : ExternalDeclaration {
     Declarator declarator;
 
     CompoundStatement compoundStatement{};
     DeclarationSpecifiers declarationSpecifiers{};
     DeclarationList declarationList{};
 
-    FunctionDefinition(Declarator decl, CompoundStatement statement) :
-        declarator(decl), compoundStatement(statement){};
+    FunctionDefinition(Declarator decl, const CompoundStatement &statement) :
+            declarator(decl), compoundStatement(statement) {};
 
-    FunctionDefinition(Declarator decl, DeclarationList declList, CompoundStatement statement) :
-        declarator(decl), declarationList(declList), compoundStatement(statement){};
+    FunctionDefinition(Declarator decl, DeclarationList declList, const CompoundStatement &statement) :
+            declarator(decl), declarationList(declList), compoundStatement(statement) {};
 
-    FunctionDefinition(DeclarationSpecifiers specifiers, Declarator decl, CompoundStatement statement) :
-        declarator(decl), declarationSpecifiers(specifiers), compoundStatement(statement){};
+    FunctionDefinition(DeclarationSpecifiers specifiers, Declarator decl, const CompoundStatement &statement) :
+            declarator(decl), declarationSpecifiers(specifiers), compoundStatement(statement) {};
 
-    FunctionDefinition(DeclarationSpecifiers specifiers, Declarator decl, DeclarationList declList, CompoundStatement statement) :
-        declarator(decl), declarationSpecifiers(specifiers), declarationList(declList), compoundStatement(statement){};
+    FunctionDefinition(DeclarationSpecifiers specifiers, Declarator decl, DeclarationList declList,
+                       const CompoundStatement &statement) :
+            declarator(decl), declarationSpecifiers(specifiers), declarationList(declList),
+            compoundStatement(statement) {};
 };
 
-struct ExternalDeclaration : AstNode{
-    Declaration declaration{};
-    FunctionDefinition funcDefinition{};
-
-    ExternalDeclaration(Declaration decl) :
-        declaration(decl){}
-
-    ExternalDeclaration(FunctionDefinition definition) :
-        funcDefinition(definition){}
-};
-
-struct TranslationUnit : AstNode{
+struct TranslationUnit : AstNode {
     std::list<ExternalDeclaration> declarations;
+
+    explicit TranslationUnit(const ExternalDeclaration &decl) {
+        declarations.push_back(decl);
+    }
+
+    explicit TranslationUnit(const TranslationUnit &unit, const ExternalDeclaration &decl) {
+        declarations = unit.declarations;
+        declarations.push_back(decl);
+    }
 };
