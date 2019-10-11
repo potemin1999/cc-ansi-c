@@ -1,5 +1,9 @@
 /**
- * Created by ilya on 9/27/19.
+ * Created by Ilya Potemin on 9/27/19.
+ *
+ * @author Daniil Dvoryanov
+ * @author Nicola Novarlic
+ * @author Ilya Potemin
  */
 
 #include <list>
