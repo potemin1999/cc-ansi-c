@@ -209,20 +209,27 @@ struct LogicalOrExpression : Expression {
 };
 
 struct ConditionalExpression : Expression {
-    explicit ConditionalExpression(LogicalOrExpression *expression1) : Expression(), expression1(expression1) {}
-
-    ConditionalExpression(Operator oper, Expression *expression2, ConditionalExpression *expression3) :
-            Expression(), oper(oper), expression2(expression2), expression3(expression3) {}
+    ConditionalExpression(LogicalOrExpression *expression1, Expression *expression2, ConditionalExpression *expression3):
+            expression1(expression1), expression2(expression2), expression3(expression3) {}
 
     LogicalOrExpression *expression1{};
-
-    Operator oper{};
     Expression *expression2{};
     ConditionalExpression *expression3{};
 };
 
 
-struct AssignmentExpression;
+struct AssignmentExpression : Expression {
+    ConditionalExpression *conditionalExpression;
+    UnaryExpression *unaryExpression;
+    Operator *oper;
+    AssignmentExpression *assignmentExpression;
+
+    AssignmentExpression(ConditionalExpression *expression) :
+            conditionalExpression(expression) {};
+
+    AssignmentExpression(UnaryExpression *unary, Operator *oper, AssignmentExpression *assignment) :
+            unaryExpression(unary), oper(oper), assignmentExpression(assignment) {};
+};
 
 struct ArgumentExpressionList {
     AssignmentExpression *assignmentExpression1;
@@ -284,7 +291,7 @@ struct Initializer {
 };
 
 struct InitializerList {
-    std::list<Initializer*> initializers;
+    std::list<Initializer *> initializers;
 
     explicit InitializerList(Initializer *init) {
         initializers.push_back(init);
@@ -747,7 +754,7 @@ struct CompoundStatement : Statement {
             declarationList(declList), statementList(statList) {};
 };
 
-struct FunctionDefinition : AstNode{
+struct FunctionDefinition : AstNode {
     Declarator *declarator;
 
     CompoundStatement *compoundStatement{};
