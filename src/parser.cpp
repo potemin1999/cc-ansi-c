@@ -4,7 +4,7 @@
 
 #include <cstdio>
 #include "parser.h"
-#include "generated/y.tab.h"
+#include "generated/y.tab.hpp"
 
 extern "C" {
 

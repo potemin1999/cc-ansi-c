@@ -13,7 +13,16 @@
 struct AstNode {
 };
 
+struct Declaration;
+struct FunctionDefinition;
+
 struct ExternalDeclaration : AstNode {
+    explicit ExternalDeclaration(Declaration *declaration) : declaration(declaration) {}
+
+    explicit ExternalDeclaration(FunctionDefinition *functionDefinition) : functionDefinition(functionDefinition) {}
+
+    Declaration *declaration{};
+    FunctionDefinition *functionDefinition{};
 };
 
 
@@ -738,7 +747,7 @@ struct CompoundStatement : Statement {
             declarationList(declList), statementList(statList) {};
 };
 
-struct FunctionDefinition : ExternalDeclaration {
+struct FunctionDefinition : AstNode{
     Declarator *declarator;
 
     CompoundStatement *compoundStatement{};

@@ -1,30 +1,47 @@
 %{
-	#include "../parser.h"
+extern "C"
+{
+        int yyparse(void);
+        int yyerror(const char *msg);
+        int yylex(void);
+        int yywrap()
+        {
+                return 1;
+        }
+
+}
+#include "../parser.h"
 %}
 
 %union {
-	struct AstNode *astNode;
+	AstNode *astNode;
 	char *stringVal;
         int oper;
-        struct AssignmentOperator* assignmentOperator;
-        struct Constant *constant;
-        struct UnaryExpression *unaryExpression;
-        struct PostfixExpression *postfixExpression;
-        struct PrimaryExpression *primaryExpression;
-        struct Expression *expression;
-        struct AssignmentExpression *assignmentExpresion;
-        struct Statement *statement;
-        struct CompoundStatement* compoundStatement;
-        struct LabeledStatement *labeledStatement;
-        struct ExpressionStatement *expressionStatement;
-        struct SelectionStatement *selectionStatement;
-        struct IterationStatement *iterationStatement;
-        struct JumpStatement *jumpStatement;
-        struct StructDeclarationList *structDeclarationList;
-        struct StructDeclaratorList *structDeclaratorList;
-        struct StatementList *statementList;
-        struct Declarator *declarator;
-        struct FunctionDefinition *functionDefinition;
+        Constant *constant;
+        UnaryExpression *unaryExpression;
+        PostfixExpression *postfixExpression;
+        PrimaryExpression *primaryExpression;
+        Expression *expression;
+        AssignmentExpression *assignmentExpresion;
+        Statement *statement;
+        CompoundStatement* compoundStatement;
+        LabeledStatement *labeledStatement;
+        ExpressionStatement *expressionStatement;
+        SelectionStatement *selectionStatement;
+        IterationStatement *iterationStatement;
+        JumpStatement *jumpStatement;
+        StructDeclarationList *structDeclarationList;
+        StructDeclaratorList *structDeclaratorList;
+        StatementList *statementList;
+        Declarator *declarator;
+        FunctionDefinition *functionDefinition;
+        ExternalDeclaration *externalDeclaration;
+        TranslationUnit *translationUnit;
+        DeclarationSpecifiers *declarationSpecifiers;
+        StorageClassSpecifier *storageClassSpecifier;
+        ArgumentExpressionList *argumentExpressionList;
+        SpecifierQualifierList *specifierQualifierList;
+        AbstractDeclarator *abstractDeclarator;
 }
 
 // OPERATORS PRECEDENCE BELOW
@@ -64,7 +81,7 @@
 %type <stringVal> IDENTIFIER
 %type <stringVal> TypeName
 %type <enumerator> Enumerator
-%type <assignmentOperator> AssignmentOperator
+%type <oper> AssignmentOperator
 %type <constant> Constant
 %type <unaryExpression> UnaryExpression
 %type <postfixExpression> PostfixExpression
@@ -110,7 +127,7 @@ PrimaryExpression : IDENTIFIER
 	| STRING_LITERAL
 	| '(' Expression ')'
 
-PostfixExpression : PrimaryExpression {$$ = $1; }
+PostfixExpression : PrimaryExpression
 	| PostfixExpression '[' Expression ']'
 	| PostfixExpression '(' ')'
 	| PostfixExpression '(' Expression ')'
@@ -367,10 +384,10 @@ FunctionDefinition : Declarator CompoundStatement {$$ = $1, $2; }
 	| DeclarationSpecifiers Declarator CompoundStatement {$$ = $1, $2, $3; }
 	| DeclarationSpecifiers Declarator DeclarationList CompoundStatement {$$ = $1, $2, $3, $4; }
 
-ExternalDeclaration : Declaration {$$ = new Declaration($1); }
-	| FunctionDefinition {$$ = new FunctionDefinition($1); }
+ExternalDeclaration : Declaration {$$ = new ExternalDeclaration($1); }
+	| FunctionDefinition {$$ = new ExternalDeclaration($1); }
 
-TranslationUnit : ExternalDeclaration {$$ = $1; }
+TranslationUnit : ExternalDeclaration { $$ = new TranslationUnti($1); }
 	| TranslationUnit ExternalDeclaration {$$ = $1, $2; }
 
 %%
