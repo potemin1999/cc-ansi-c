@@ -79,8 +79,8 @@ UnaryOperator : '&'
 	| '!'
 
 UnaryExpression : PostfixExpression
-    	| INC_OP UnaryExpression
-    	| DEC_OP UnaryExpression
+    	| OP_INC UnaryExpression
+    	| OP_DEC UnaryExpression
     	| UnaryOperator CastExpression
     	| SIZEOF UnaryExpression
     	| SIZEOF '(' TypeName ')'
@@ -121,7 +121,7 @@ InclusiveOrExpression : ExclusiveOrExpression
     	| InclusiveOrExpression '|' ExclusiveOrExpression
 
 LogicalAndExpression : InclusiveOrExpression
-    	| LogicalAndExpression AND_OP InclusiveOrExpression
+    	| LogicalAndExpression OP_AND InclusiveOrExpression
 
 LogicalOrExpression : LogicalAndExpression
     	| LogicalOrExpression OP_OR LogicalAndExpression
