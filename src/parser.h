@@ -19,91 +19,171 @@ struct ExternalDeclaration : AstNode {
 
 struct PrimaryExpression;
 
-struct PostfixExpression {
+struct Expression : AstNode {
+
+};
+
+struct PostfixExpression : Expression {
     PostfixExpression *expression1;
-    Operator *oper;
+    Operator oper;
     PrimaryExpression *expression2;
 
-    PostfixExpression(PostfixExpression expr1, Operator oper, PrimaryExpression expr2) :
+    PostfixExpression(PostfixExpression *expr1, Operator oper, PrimaryExpression *expr2) :
             expression1(expr1), oper(oper), expression2(expr2) {}
 };
 
-struct UnaryExpression {
-    Operator *oper;
+struct UnaryExpression;
+
+struct CastExpression : Expression {
+    Expression *expression{};
+    char *typeName{};
+
+    explicit CastExpression(Expression *unaryExpression) :
+            Expression(),
+            expression(unaryExpression) {}
+
+    CastExpression(char *typeName, Expression *castExpression) :
+            Expression(),
+            typeName(typeName), expression(castExpression) {}
+
+};
+
+struct UnaryExpression : Expression {
+    Operator oper;
     Expression *expr;
+
+    UnaryExpression(Operator oper, Expression *expression) :
+            Expression(),
+            oper(oper), expr(expression) {}
 };
 
-struct MultiplicativeExpression {
-    MultiplicativeExpression *expression1;
-    Operator *oper;
+struct MultiplicativeExpression : Expression {
+    MultiplicativeExpression *expression1{};
+    Operator oper{};
     CastExpression expression2;
+
+    explicit MultiplicativeExpression(CastExpression *castExpression) :
+            Expression(),
+            expression2(castExpression) {}
+
+    MultiplicativeExpression(MultiplicativeExpression *multExpression, Operator oper, CastExpression *castExpression) :
+            Expression(),
+            expression1(multExpression), oper(oper), expression2(castExpression) {}
 };
 
-struct AdditiveExpression {
-    AdditiveExpression *expression1;
-    Operator *oper;
+struct AdditiveExpression : Expression {
+    AdditiveExpression *expression1{};
+    Operator oper{};
     MultiplicativeExpression *expression2;
+
+    explicit AdditiveExpression(MultiplicativeExpression *multiplicativeExpression) :
+            Expression(),
+            expression2(multiplicativeExpression) {}
+
+    AdditiveExpression(AdditiveExpression *additiveExpression, Operator oper,
+                       MultiplicativeExpression *multiplicativeExpression) :
+            Expression(),
+            expression1(additiveExpression), oper(oper), expression2(multiplicativeExpression) {}
 };
 
-struct ShiftExpression {
-    ShiftExpression *expression1;
-    Operator *oper;
+struct ShiftExpression : Expression {
+    ShiftExpression *expression1{};
+    Operator oper{};
     AdditiveExpression *expression2;
+
+    explicit ShiftExpression(AdditiveExpression *additiveExpression) : Expression(), expression2(additiveExpression) {}
+
+    ShiftExpression(ShiftExpression *shiftExpression, Operator oper, AdditiveExpression *additiveExpression) :
+            Expression(), expression1(shiftExpression), oper(oper), expression2(additiveExpression) {}
+
 };
 
-struct RelationalExpression {
-    RelationalExpression *expression1;
-    Operator *oper;
+struct RelationalExpression : Expression {
+    RelationalExpression *expression1{};
+    Operator oper{};
     ShiftExpression *expression2;
+
+    explicit RelationalExpression(ShiftExpression *shiftExpression) : Expression(), expression2(shiftExpression) {}
+
+    RelationalExpression(RelationalExpression *relationalExpression, Operator oper, ShiftExpression *shiftExpression) :
+            Expression(), expression1(relationalExpression), oper(oper), expression2(shiftExpression) {}
+
 };
 
-struct EqualityExpression {
-    EqualityExpression *expression1;
-    Operator *oper;
+struct EqualityExpression : Expression {
+    EqualityExpression *expression1{};
+    Operator oper{};
     RelationalExpression *expression2;
+
+    explicit EqualityExpression(RelationalExpression *relationalExpression)
+            : Expression(), expression2(relationalExpression) {}
+
+    EqualityExpression(EqualityExpression *equalityExpression, Operator oper,
+                       RelationalExpression *relationalExpression) :
+            Expression(), expression1(equalityExpression), oper(oper), expression2(relationalExpression) {}
+
 };
 
-struct AndExpression {
+struct AndExpression : Expression {
     AndExpression *expression1;
-    Operator *oper;
     EqualityExpression *expression2;
+
+    AndExpression(AndExpression *andExpression, EqualityExpression *equalityExpression) :
+            Expression(), expression1(andExpression), expression2(equalityExpression) {}
 };
 
-struct ExclusiveOrExpression {
+struct ExclusiveOrExpression : Expression {
     ExclusiveOrExpression *expression1;
-    Operator *oper;
     AndExpression *expression2;
+
+    ExclusiveOrExpression(ExclusiveOrExpression *expression1, AndExpression *expression2) :
+            Expression(), expression1(expression1), expression2(expression2) {}
 };
 
-struct InclusiveOrExpression {
+struct InclusiveOrExpression : Expression {
+    InclusiveOrExpression(InclusiveOrExpression *expression1, ExclusiveOrExpression *expression2) :
+            Expression(), expression1(expression1), expression2(expression2) {}
+
     InclusiveOrExpression *expression1;
-    Operator *oper;
     ExclusiveOrExpression *expression2;
 };
 
-struct LogicalAndExpression {
+struct LogicalAndExpression : Expression {
+    LogicalAndExpression(LogicalAndExpression *expression1, InclusiveOrExpression *expression2) :
+            Expression(), expression1(expression1), expression2(expression2) {}
+
     LogicalAndExpression *expression1;
-    Operator *oper;
     InclusiveOrExpression *expression2;
 };
 
-struct LogicalOrExpression {
+struct LogicalOrExpression : Expression {
+    LogicalOrExpression(LogicalOrExpression *expression1, LogicalAndExpression *expression2) :
+            Expression(), expression1(expression1), expression2(expression2) {}
+
     LogicalOrExpression *expression1;
-    Operator *oper;
     LogicalAndExpression *expression2;
 };
 
-struct ConditionalExpression {
-    LogicalOrExpression *expression1;
-    Operator *oper;
-    Expression *expression2;
-    ConditionalExpression *expression3;
+struct ConditionalExpression : Expression {
+    explicit ConditionalExpression(LogicalOrExpression *expression1) : Expression(), expression1(expression1) {}
+
+    ConditionalExpression(Operator oper, Expression *expression2, ConditionalExpression *expression3) :
+            Expression(), oper(oper), expression2(expression2), expression3(expression3) {}
+
+    LogicalOrExpression *expression1{};
+
+    Operator oper{};
+    Expression *expression2{};
+    ConditionalExpression *expression3{};
 };
+
+
+
 
 struct Pointer;
 struct DirectDeclarator;
 
-struct Declarator: AstNode {
+struct Declarator : AstNode {
     Pointer *pointer;
     DirectDeclarator *directDeclarator;
 
@@ -115,7 +195,7 @@ struct ParameterTypeList;
 struct IdentifierList;
 struct Constant;
 
-struct DirectDeclarator : AstNode{
+struct DirectDeclarator : AstNode {
     char *identifier{};
     DirectDeclarator *directDeclarator{};
     union {
@@ -140,7 +220,7 @@ struct DirectDeclarator : AstNode{
 
 struct AbstractDeclarator;
 
-struct DirectAbstractDeclarator : AstNode{
+struct DirectAbstractDeclarator : AstNode {
     Constant *constant{};
     ParameterTypeList *parameterTypeList{};
     AbstractDeclarator *abstractDeclarator{};
@@ -162,7 +242,7 @@ struct DirectAbstractDeclarator : AstNode{
 
 };
 
-struct AbstractDeclarator : AstNode{
+struct AbstractDeclarator : AstNode {
     Pointer *pointer{};
     DirectAbstractDeclarator *directAbstractDeclarator{};
 
@@ -177,7 +257,7 @@ struct AbstractDeclarator : AstNode{
 
 struct Initializer;
 
-struct InitDeclarator : AstNode{
+struct InitDeclarator : AstNode {
     Declarator *declarator;
     Initializer *initializer;
 
@@ -203,7 +283,7 @@ struct StorageClassSpecifier;
 struct TypeSpecifier;
 struct TypeQualifier;
 
-struct DeclarationSpecifier : AstNode{
+struct DeclarationSpecifier : AstNode {
     StorageClassSpecifier *storageClassSpecifier;
     TypeSpecifier *typeSpecifier;
     TypeQualifier *typeQualifier;
@@ -216,7 +296,7 @@ struct DeclarationSpecifier : AstNode{
     explicit DeclarationSpecifier(TypeQualifier *typeQualifier) : typeQualifier(typeQualifier) {}
 };
 
-struct DeclarationSpecifiers: AstNode {
+struct DeclarationSpecifiers : AstNode {
     std::list<DeclarationSpecifier *> declarationSpecifierList;
 
     explicit DeclarationSpecifiers(DeclarationSpecifier *declarationSpecifier) {
@@ -228,7 +308,7 @@ struct DeclarationSpecifiers: AstNode {
     }
 };
 
-struct Declaration : AstNode{
+struct Declaration : AstNode {
     DeclarationSpecifiers *declarationSpecifiers;
     InitDeclaratorList *initDeclaratorList{};
 
@@ -238,7 +318,7 @@ struct Declaration : AstNode{
             declarationSpecifiers(declarationSpecifiers), initDeclaratorList(initDeclaratorList) {}
 };
 
-struct DeclarationList : AstNode{
+struct DeclarationList : AstNode {
     std::list<Declaration *> declarationList;
 
     explicit DeclarationList(Declaration *declaration) {
@@ -250,7 +330,7 @@ struct DeclarationList : AstNode{
     }
 };
 
-struct StructDeclarator : AstNode{
+struct StructDeclarator : AstNode {
     Declarator *declarator{};
     Constant *constant{};
 
@@ -262,7 +342,7 @@ struct StructDeclarator : AstNode{
             declarator(declarator), constant(constant) {}
 };
 
-struct StructDeclaratorList: AstNode {
+struct StructDeclaratorList : AstNode {
     std::list<StructDeclarator *> structDeclaratorList;
 
     explicit StructDeclaratorList(StructDeclarator *structDeclarator) {
@@ -286,8 +366,9 @@ struct StructDeclaration : AstNode {
 };
 
 struct StructDeclarationList : AstNode {
-    std::list<StructDeclaration> structDeclarationList;
-    explicit StructDeclarationList(StructDeclaration structDeclaration) {
+    std::list<StructDeclaration *> structDeclarationList;
+
+    explicit StructDeclarationList(StructDeclaration *structDeclaration) {
         addStructDeclaration(structDeclaration);
     }
 
@@ -302,8 +383,8 @@ struct StructDeclarationList : AstNode {
 
 struct ParameterDeclaration : AstNode {
     DeclarationSpecifiers *declarationSpecifiers;
-    AbstractDeclarator *abstractDeclarator;
-    Declarator *declarator;
+    AbstractDeclarator *abstractDeclarator{};
+    Declarator *declarator{};
 
     explicit ParameterDeclaration(DeclarationSpecifiers *declarationSpecifiers) : declarationSpecifiers(
             declarationSpecifiers) {}
@@ -335,10 +416,11 @@ struct ParameterTypeList : AstNode {
     explicit ParameterTypeList(ParameterList *parameterList, bool withEllipsis) :
             parameterList(parameterList), withEllipsis(withEllipsis) {}
 
-  
+};
+
 struct Declaration;
 
-struct TypeName : AstNode{
+struct TypeName : AstNode {
     SpecifierQualifierList specifierQualifierList;
     AbstractDeclarator declarator{};
 
@@ -358,7 +440,7 @@ struct ExpressionStatement : Statement {
     ExpressionStatement() {};
 
     ExpressionStatement(Expression exp) :
-        expression(exp){};
+            expression(exp) {};
 };
 
 struct StatementList : AstNode {
@@ -446,7 +528,8 @@ struct IterationStatement : Statement {
             statement(stat), expression(exp), type(IterationStatementType(t)) {};
 
     IterationStatement(ExpressionStatement exp1, ExpressionStatement exp2, Statement stat, int t) :
-            expressionStatement1(exp1), expressionStatement2(exp2), statement(stat), type(IterationStatementType(t)) {};
+            expressionStatement1(exp1), expressionStatement2(exp2), statement(stat),
+            type(IterationStatementType(t)) {};
 
     IterationStatement(ExpressionStatement expStat1, ExpressionStatement expStat2, Expression exp, Statement stat,
                        int t) :
