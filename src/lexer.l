@@ -16,6 +16,7 @@ L_W     [ \t\v\n\f]
 
 %{
 #include "y.tab.h"
+#include "../operator.h"
 static int GetIdentType();
 %}
 
