@@ -5,7 +5,27 @@
 %union {
 	struct AstNode *astNode;
 	char *stringVal;
-	int oper;
+        int oper;
+        AssignmentOperator* oper
+        Constant *astNode
+        UnaryExpression *unaryExpression
+        PostfixExpression *postfixExpression
+        PrimaryExpression *primaryExpression
+        Expression *expression
+        AssignmentExpression *assignmentExpresion
+        Statement *statement
+        CompoundStatement* compoundStatement
+        LabeledStatement *labeledStatement
+        ExpressionStatement *expressionStatement
+        SelectionStatement *selectionStatement
+        IterationStatement *iterationStatement
+        JumpStatement *jumpStatement
+        StructDeclarationList *structDeclarationList
+        StructDeclaratorList *structDeclaratorList
+        PostfixExpression *postfixExpression
+        StatementList *statementList
+        Declarator *declarator
+        FunctionDefinition *functionDefinition
 }
 
 // OPERATORS PRECEDENCE BELOW
@@ -43,10 +63,28 @@
 %token ASM BREAK CASE CONTINUE DEFAULT DO ELSE ENUM FOR GOTO IF RETURN SIZEOF STRUCT SWITCH TYPEDEF UNION WHILE ELLIPSIS
 
 %type <stringVal> IDENTIFIER
+%type <stringVal> TypeName
 %type <oper> AssignmentOperator
-%type <astNode> Constant UnaryExpression PostfixExpression PrimaryExpression Expression AssignmentExpression
-%type <astNode> Statement CompoundStatement LabeledStatement ExpressionStatement SelectionStatement IterationStatement JumpStatement
-%type <astNode> StructDeclarationList StructDeclaratorList
+%type <astNode> Constant
+%type <unaryExpression> UnaryExpression
+%type <postfixExpression> PostfixExpression
+%type <primaryExpression> PrimaryExpression
+%type <expression> Expression
+%type <assignmentExpresion> AssignmentExpression
+%type <statement> Statement
+%type <compoundStatement> CompoundStatement
+%type <labeledStatement> LabeledStatement
+%type <expressionStatement> ExpressionStatement
+%type <selectionStatement> SelectionStatement
+%type <iterationStatement> IterationStatement
+%type <jumpStatement> JumpStatement
+%type <structDeclarationList> StructDeclarationList
+%type <structDeclaratorList> StructDeclaratorList
+%type <statementList> StatementList
+%type <declarator> Declarator
+%type <functionDefinition> FunctionDefinition
+%type <externalDeclaration> ExternalDeclaration
+%type <translationUnit> TranslationUnit
 %%
 
 StorageClassSpecifier : AUTO {$$ = 0}
@@ -69,7 +107,7 @@ PostfixExpression : PrimaryExpression {$$ = $1; }
 	| PostfixExpression '(' ')'
 	| PostfixExpression '(' Expression ')'
 	| PostfixExpression '.' IDENTIFIER
-	| PostfixExpression OP_PTR_ACCESS IDENTIFIER { $$ = new PostfixExpresion($1,$2,$3); }
+	| PostfixExpression OP_PTR_ACCESS IDENTIFIER { $$ = new PostfixExpresion($1,OP_PTR_ACCESS,$3); }
 	| PostfixExpression OP_INC
 	| PostfixExpression OP_DEC
 
@@ -81,8 +119,8 @@ UnaryOperator : '&'
 	| '!'
 
 UnaryExpression : PostfixExpression
-    	| INC_OP UnaryExpression
-    	| DEC_OP UnaryExpression
+    	| OP_INC UnaryExpression
+    	| OP_DEC UnaryExpression
     	| UnaryOperator CastExpression
     	| SIZEOF UnaryExpression
     	| SIZEOF '(' TypeName ')'
@@ -123,7 +161,7 @@ InclusiveOrExpression : ExclusiveOrExpression
     	| InclusiveOrExpression '|' ExclusiveOrExpression
 
 LogicalAndExpression : InclusiveOrExpression
-    	| LogicalAndExpression AND_OP InclusiveOrExpression
+    	| LogicalAndExpression OP_AND InclusiveOrExpression
 
 LogicalOrExpression : LogicalAndExpression
     	| LogicalOrExpression OP_OR LogicalAndExpression
@@ -132,16 +170,16 @@ ConditionalExpression : LogicalOrExpression
     	| LogicalOrExpression '?' Expression : ConditionalExpression
 
 AssignmentOperator : '='
-    	| MUL_ASSIGN
-    	| DIV_ASSIGN
-    	| MOD_ASSIGN
-    	| ADD_ASSIGN
-    	| SUB_ASSIGN
-    	| LEFT_ASSIGN
-    	| RIGHT_ASSIGN
-    	| AND_ASSIGN
-    	| XOR_ASSIGN
-    	| OR_ASSIGN
+    	| OP_MUL_ASSIGN
+    	| OP_DIV_ASSIGN
+    	| OP_MOD_ASSIGN
+    	| OP_ADD_ASSIGN
+    	| OP_SUB_ASSIGN
+    	| OP_L_SHIFT_ASSIGN
+    	| OP_R_SHIFT_ASSIGN
+    	| OP_AND_ASSIGN
+    	| OP_XOR_ASSIGN
+    	| OP_OR_ASSIGN
 
 AssignmentExpression : ConditionalExpression
 	| UnaryExpression AssignmentOperator AssignmentExpression { $$ = $2 }
@@ -309,8 +347,8 @@ IterationStatement : WHILE '(' Expression ')' Statement {$$ = $3, $5, 0 ;}
 	| FOR '(' ExpressionStatement ExpressionStatement Expression ')' Statement  {$$ = $3, $4, $5, $7, 3 ;}
 
 CompoundStatement : '{' '}'
-	| '{' StatementList '}' {$$ = $2; }
-	| '{' DeclarationList '}' {$$ = $2; }
+	| '{' StatementList '}' {$$ = new CompoundStatement($2); }
+	| '{' DeclarationList '}' {$$ = new $2; }
 	| '{' DeclarationList StatementList '}' {$$ = $2, $3; }
 
 FunctionDefinition : Declarator CompoundStatement {$$ = $1, $2; }
