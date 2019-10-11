@@ -2,7 +2,8 @@
 
 mkdir src/generated || echo ""
 cd src/generated || exit
-lex ../lexer.l
+lex -+ ../lexer.l
 yacc -v -d ../parser.y
+
 cd .. || exit
 cd .. || exit

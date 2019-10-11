@@ -3,7 +3,6 @@
  */
 
 #include <list>
-#include <utility>
 #include "operator.h"
 
 #ifndef CC_LABS_PARSER_H
@@ -17,32 +16,25 @@ struct AstNode {
 struct ExternalDeclaration : AstNode {
 };
 
-enum StorageClassSpecifierEnum {
-    AUTO = 0, REGISTER = 1, STATIC = 2, EXTERN = 3
-};
 
 struct StorageClassSpecifier {
-    StorageClassSpecifierEnum type;
+    int storageClassSpecifierType;
 
-    StorageClassSpecifier(int t) :
-            type(StorageClassSpecifierEnum(t)) {};
+    StorageClassSpecifier(int t) : storageClassSpecifierType(t) {};
 };
 
-enum ConstantType {
-    INT_LITERAL, CHAR_LITERAL, FLOAT_LITERAL, ENUMERATOR
-};
 
 struct Enumerator;
 
 struct Constant {
     Enumerator *enumerator;
-    ConstantType type;
+    int constantType;
 
     explicit Constant(int t) :
-            type(ConstantType(t)) {};
+            constantType(t) {};
 
     explicit Constant(Enumerator *e, int t) :
-            enumerator(e), type(ConstantType(t)) {};
+            enumerator(e), constantType(t) {};
 };
 
 struct Expression : AstNode {
@@ -272,110 +264,93 @@ struct EnumSpecifier {
 struct InitializerList;
 
 struct Initializer {
-    AssignmentExpression *expression;
-    InitializerList *list;
+    AssignmentExpression *expression{};
+    InitializerList *list{};
 
-    Initializer(AssignmentExpression *expression) :
+    explicit Initializer(AssignmentExpression *expression) :
             expression(expression) {};
 
-    Initializer(InitializerList *list) :
+    explicit Initializer(InitializerList *list) :
             list(list) {};
 };
 
 struct InitializerList {
-    std::list<Initializer> initializers;
+    std::list<Initializer*> initializers;
 
-    InitializerList(Initializer init) {
+    explicit InitializerList(Initializer *init) {
         initializers.push_back(init);
     }
 
-    InitializerList(InitializerList list, Initializer init) : initializers(list.initializers) {
-        initializers.push_back(init);
+    void addInitializer(Initializer *initializer) {
+        initializers.push_back(initializer);
     }
 };
 
 struct IdentifierList {
     std::list<char *> identifiers;
 
-    IdentifierList(char *id) {
+    explicit IdentifierList(char *id) {
         identifiers.push_back(id);
     }
 
-    IdentifierList(IdentifierList list, char *id) : identifiers(list.identifiers) {
+    void addIdentifier(char *id) {
         identifiers.push_back(id);
     }
-};
-
-enum TypeQualifier {
-    CONST, VOLATILE
 };
 
 struct TypeQualifierList {
-    std::list<TypeQualifier> qualifiers;
+    std::list<int> qualifiers;
 
-    TypeQualifierList(TypeQualifier qualifier) {
-        qualifiers.push_back(qualifier);
+    explicit TypeQualifierList(int typeQualifier) {
+        qualifiers.push_back(typeQualifier);
     }
 
-    TypeQualifierList(TypeQualifierList list, TypeQualifier qualifier) : qualifiers(list.qualifiers) {
-        qualifiers.push_back(qualifier);
+    void addTypeQualifier(int typeQualifier) {
+        qualifiers.push_back(typeQualifier);
     }
 };
 
 struct StructDeclarationList;
 
-enum StructOrUnion {
-    STRUCT, UNION
-};
+//enum StructOrUnion {
+//    STRUCT, UNION
+//};
 
 struct StructOrUnionSpecifier {
-    StructOrUnion structOrUnion;
+    bool isUnion;
     char *identifier{};
     StructDeclarationList *structDeclarationList{};
 
-    StructOrUnionSpecifier(StructOrUnion structOrUnion, char *identifier) :
-            structOrUnion(structOrUnion), identifier(identifier) {};
+    StructOrUnionSpecifier(bool isUnion, char *identifier) :
+            isUnion(isUnion), identifier(identifier) {};
 
-    StructOrUnionSpecifier(StructOrUnion structOrUnion, StructDeclarationList *structDeclarationList) :
-            structOrUnion(structOrUnion), structDeclarationList(structDeclarationList) {};
+    StructOrUnionSpecifier(bool isUnion, StructDeclarationList *structDeclarationList) :
+            isUnion(isUnion), structDeclarationList(structDeclarationList) {};
 
-    StructOrUnionSpecifier(StructOrUnion structOrUnion, char *id, StructDeclarationList *structDeclarationList) :
-            structOrUnion(structOrUnion), identifier(id), structDeclarationList(structDeclarationList) {};
-};
-
-enum TypeSpecifierType {
-    VOID,
-    CHAR,
-    SHORT,
-    INT,
-    LONG,
-    FLOAT,
-    DOUBLE,
-    SIGNED,
-    UNSIGNED,
-    TYPE_NAME
+    StructOrUnionSpecifier(bool isUnion, char *id, StructDeclarationList *structDeclarationList) :
+            isUnion(isUnion), identifier(id), structDeclarationList(structDeclarationList) {};
 };
 
 struct TypeSpecifier {
-    TypeSpecifierType type{};
-    StructOrUnion *structOrUnion{};
+    int type{};
+    bool isUnion;
     EnumSpecifier *enumSpecifier{};
 
-    TypeSpecifier(TypeSpecifierType type) : type(TypeSpecifierType(type)) {}
+    TypeSpecifier(int type) : type(type) {}
 
-    TypeSpecifier(StructOrUnion *structOrUnion) : structOrUnion(structOrUnion) {}
+    TypeSpecifier(bool isUnion) : isUnion(isUnion) {}
 
     TypeSpecifier(EnumSpecifier *enumSpecifier) : enumSpecifier(enumSpecifier) {}
 };
 
 struct SpecifierQualifier {
     TypeSpecifier *typeSpecifier{};
-    TypeQualifier *typeQualifier{};
+    int typeQualifier{};
     char *identifier{};
 
     SpecifierQualifier(TypeSpecifier *typeSpecifier) : typeSpecifier(typeSpecifier) {}
 
-    SpecifierQualifier(TypeQualifier *typeQualifier, char *identifier) :
+    SpecifierQualifier(int typeQualifier, char *identifier) :
             typeQualifier(typeQualifier), identifier(identifier) {}
 };
 
@@ -493,14 +468,14 @@ struct TypeSpecifier;
 struct DeclarationSpecifier : AstNode {
     StorageClassSpecifier *storageClassSpecifier;
     TypeSpecifier *typeSpecifier;
-    TypeQualifier *typeQualifier;
+    int typeQualifier;
 
     explicit DeclarationSpecifier(StorageClassSpecifier *storageClassSpecifier) :
             storageClassSpecifier(storageClassSpecifier) {}
 
     explicit DeclarationSpecifier(TypeSpecifier *typeSpecifier) : typeSpecifier(typeSpecifier) {}
 
-    explicit DeclarationSpecifier(TypeQualifier *typeQualifier) : typeQualifier(typeQualifier) {}
+    explicit DeclarationSpecifier(int typeQualifier) : typeQualifier(typeQualifier) {}
 };
 
 struct DeclarationSpecifiers : AstNode {
@@ -663,23 +638,23 @@ struct StatementList : AstNode {
     }
 };
 
-enum JumpStatementType {
-    GOTO, CONTINUE, BREAK, RETURN
-};
+//enum JumpStatementType {
+//    GOTO, CONTINUE, BREAK, RETURN
+//};
 
 struct JumpStatement : Statement {
     char *identifier;
     Expression *expression;
-    JumpStatementType type;
+    int jumpStatementType;
 
     explicit JumpStatement(int t) :
-            type(JumpStatementType(t)) {};
+            jumpStatementType(t) {};
 
     explicit JumpStatement(char *id, int t) :
-            identifier(id), type(JumpStatementType(t)) {};
+            identifier(id), jumpStatementType(t) {};
 
     explicit JumpStatement(Expression *exp, int t) :
-            expression(exp), type(JumpStatementType(t)) {};
+            expression(exp), jumpStatementType(t) {};
 };
 
 struct LabeledStatement : Statement {
@@ -697,26 +672,30 @@ struct LabeledStatement : Statement {
             constant(c), statement(stat) {};
 };
 
-enum SelectionStatementType {
-    IF = 0, IF_ELSE = 1, SWITCH = 2
-};
+//enum SelectionStatementType {
+//    IF = 0, IF_ELSE = 1, SWITCH = 2
+//};
 
 struct SelectionStatement : Statement {
     Expression *expression;
     Statement *statement1;
     Statement *statement2{};
-    SelectionStatementType type;
+    int selectionStatementType;
 
     explicit SelectionStatement(Expression *exp, Statement *stat, int t) :
-            expression(exp), statement1(stat), type(SelectionStatementType(t)) {};
+            expression(exp), statement1(stat), selectionStatementType(t) {};
 
     explicit SelectionStatement(Expression *exp, Statement *stat1, Statement *stat2, int t) :
-            expression(exp), statement1(stat1), statement2(stat2), type(SelectionStatementType(t)) {};
+            expression(exp), statement1(stat1), statement2(stat2), selectionStatementType(t) {};
 };
 
-enum IterationStatementType {
-    WHILE = 0, DO_WHILE = 1, FOREACH = 2, FORI = 3
-};
+//enum IterationStatementType {
+//    WHILE = 0, DO_WHILE = 1, FOREACH = 2, FORI = 3
+//};
+
+#define DO_WHILE 1
+#define FOREACH  2
+#define FORI     3
 
 struct IterationStatement : Statement {
     Statement *statement;
@@ -725,22 +704,22 @@ struct IterationStatement : Statement {
     ExpressionStatement *expressionStatement1{};
     ExpressionStatement *expressionStatement2{};
 
-    IterationStatementType type;
+    int iterationStatementType;
 
     IterationStatement(Expression *exp, Statement *stat, int t) :
-            expression(exp), statement(stat), type(IterationStatementType(t)) {};
+            expression(exp), statement(stat), iterationStatementType(t) {};
 
     IterationStatement(Statement *stat, Expression *exp, int t) :
-            statement(stat), expression(exp), type(IterationStatementType(t)) {};
+            statement(stat), expression(exp), iterationStatementType(t) {};
 
     IterationStatement(ExpressionStatement *exp1, ExpressionStatement *exp2, Statement *stat, int t) :
             expressionStatement1(exp1), expressionStatement2(exp2), statement(stat),
-            type(IterationStatementType(t)) {};
+            iterationStatementType(t) {};
 
     IterationStatement(ExpressionStatement *expStat1, ExpressionStatement *expStat2, Expression *exp, Statement *stat,
                        int t) :
             expressionStatement1(expStat1), expressionStatement2(expStat2), expression(exp), statement(stat),
-            type(IterationStatementType(t)) {};
+            iterationStatementType(t) {};
 };
 
 struct CompoundStatement : Statement {
@@ -782,7 +761,7 @@ struct FunctionDefinition : ExternalDeclaration {
 };
 
 struct TranslationUnit : AstNode {
-    std::list<ExternalDeclaration*> declarations;
+    std::list<ExternalDeclaration *> declarations;
 
     explicit TranslationUnit(ExternalDeclaration *decl) {
         declarations.push_back(decl);

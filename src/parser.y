@@ -6,26 +6,25 @@
 	struct AstNode *astNode;
 	char *stringVal;
         int oper;
-        AssignmentOperator* oper
-        Constant *astNode
-        UnaryExpression *unaryExpression
-        PostfixExpression *postfixExpression
-        PrimaryExpression *primaryExpression
-        Expression *expression
-        AssignmentExpression *assignmentExpresion
-        Statement *statement
-        CompoundStatement* compoundStatement
-        LabeledStatement *labeledStatement
-        ExpressionStatement *expressionStatement
-        SelectionStatement *selectionStatement
-        IterationStatement *iterationStatement
-        JumpStatement *jumpStatement
-        StructDeclarationList *structDeclarationList
-        StructDeclaratorList *structDeclaratorList
-        PostfixExpression *postfixExpression
-        StatementList *statementList
-        Declarator *declarator
-        FunctionDefinition *functionDefinition
+        struct AssignmentOperator* assignmentOperator;
+        struct Constant *constant;
+        struct UnaryExpression *unaryExpression;
+        struct PostfixExpression *postfixExpression;
+        struct PrimaryExpression *primaryExpression;
+        struct Expression *expression;
+        struct AssignmentExpression *assignmentExpresion;
+        struct Statement *statement;
+        struct CompoundStatement* compoundStatement;
+        struct LabeledStatement *labeledStatement;
+        struct ExpressionStatement *expressionStatement;
+        struct SelectionStatement *selectionStatement;
+        struct IterationStatement *iterationStatement;
+        struct JumpStatement *jumpStatement;
+        struct StructDeclarationList *structDeclarationList;
+        struct StructDeclaratorList *structDeclaratorList;
+        struct StatementList *statementList;
+        struct Declarator *declarator;
+        struct FunctionDefinition *functionDefinition;
 }
 
 // OPERATORS PRECEDENCE BELOW
@@ -65,8 +64,8 @@
 %type <stringVal> IDENTIFIER
 %type <stringVal> TypeName
 %type <enumerator> Enumerator
-%type <oper> AssignmentOperator
-%type <astNode> Constant
+%type <assignmentOperator> AssignmentOperator
+%type <constant> Constant
 %type <unaryExpression> UnaryExpression
 %type <postfixExpression> PostfixExpression
 %type <primaryExpression> PrimaryExpression
@@ -93,12 +92,13 @@
 %type <argumentExpressionList> ArgumentExpressionList
 %type <specifierQualifierList> SpecifierQualifierList
 %type <abstractDeclarator> AbstractDeclarator
+
 %%
 
-StorageClassSpecifier : AUTO {$$ = new StorageClassSpecifier(1); }
-	| REGISTER {$$ = new StorageClassSpecifier(2); }
-	| STATIC {$$ = new StorageClassSpecifier(3); }
-	| EXTERN {$$ = new StorageClassSpecifier(4); }
+StorageClassSpecifier : AUTO 	{$$ = new StorageClassSpecifier(1); }
+	| REGISTER 		{$$ = new StorageClassSpecifier(2); }
+	| STATIC 		{$$ = new StorageClassSpecifier(3); }
+	| EXTERN 		{$$ = new StorageClassSpecifier(4); }
 
 Constant : INT_LITERAL {$$ = new ConstantType(1); }
 	| CHAR_LITERAL {$$ = new ConstantType(2);}
@@ -372,3 +372,6 @@ ExternalDeclaration : Declaration {$$ = new Declaration($1); }
 
 TranslationUnit : ExternalDeclaration {$$ = $1; }
 	| TranslationUnit ExternalDeclaration {$$ = $1, $2; }
+
+%%
+
