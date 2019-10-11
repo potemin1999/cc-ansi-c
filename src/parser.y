@@ -130,7 +130,7 @@ PrimaryExpression : IDENTIFIER
 PostfixExpression : PrimaryExpression {$$ = $1; }
 	| PostfixExpression '[' Expression ']' {$$ = new PostfixExpression($1, 0, $3);}
 	| PostfixExpression '(' ')'{ $$ = new PostfixExpresion($1, 1, nullptr); }
-	| PostfixExpression '(' Expression ')' { $$ = new PostfixExpresion($1, 1, $3); }
+	| PostfixExpression '(' ArgumentExpressionList ')' { $$ = new PostfixExpresion($1, 1, $3); }
 	| PostfixExpression '.' IDENTIFIER { $$ = new PostfixExpresion($1, 2, new PrimaryExpression($3)); }
 	| PostfixExpression OP_PTR_ACCESS IDENTIFIER { $$ = new PostfixExpression($1, OP_PTR_ACCESS, new PrimaryExpression($3)); }
 	| PostfixExpression OP_INC {$$ = new PostfixExpression($1, $2, nullptr);}
@@ -210,30 +210,27 @@ AssignmentExpression : ConditionalExpression {$$ = $1}
 	| UnaryExpression AssignmentOperator AssignmentExpression { $$ = new AssignmentExpression($1, $2, $3);}
 
 Expression : AssignmentExpression { $$ = $1}
-	| Expression ',' AssignmentExpression {$$ = $1, $3}
+	| Expression ',' AssignmentExpression {$$ = $1, $3} //TODO maybe fix this
 
-ArgumentExpressionList : AssignmentExpression {$$ = $1}
-    	| ArgumentExpressionList ',' AssignmentExpression {$$ = $1, $3}
+Enumerator : IDENTIFIER  {$$ = new Enumerator($1, nullptr);}
+    	| IDENTIFIER '=' Constant {$$ = new Enumerator($1, $3);}
 
-Enumerator : IDENTIFIER
-    	| IDENTIFIER '=' Constant
+EnumeratorList : Enumerator {$$ = new EnumeratorList($1);}
+    	| EnumeratorList ',' Enumerator {$$ = $1->addEnumerator($3);}
 
-EnumeratorList : Enumerator
-    	| EnumeratorList ',' Enumerator
+EnumSpecifier : ENUM IDENTIFIER {$$ = new EnumSpecifier($1, nullptr);}
+    	| ENUM '{' EnumeratorList '}' {$$ = new EnumSpecifier(nullptr, $3);}
+    	| ENUM IDENTIFIER '{' EnumeratorList '}' {$$ = new EnumSpecifier($2, $4);}
 
-EnumSpecifier : ENUM IDENTIFIER
-    	| ENUM '{' EnumeratorList '}'
-    	| ENUM IDENTIFIER '{' EnumeratorList '}'
+Initializer : AssignmentExpression {$$ = new Initializer($1);}
+    	| '{' InitializerList '}' {$$ = new Initializer($2);}
+    	| '{' InitializerList ',' '}' {$$ = new Initializer($2);}
 
-Initializer : AssignmentExpression
-    	| '{' InitializerList '}'
-    	| '{' InitializerList ',' '}'
+InitializerList : Initializer {$$ = new InitializerList($1);}
+    	| InitializerList ',' Initializer {$$ = $1 -> addInitializer($3);}
 
-InitializerList : Initializer
-    	| InitializerList ',' Initializer
-
-IdentifierList : IDENTIFIER
-    	| IdentifierList ',' IDENTIFIER
+IdentifierList : IDENTIFIER {$$ = new IdentifierList($1);}
+    	| IdentifierList ',' IDENTIFIER {$$ = $1 -> addIdentifier($3);}
 
 TypeQualifier : CONST | VOLATILE
 

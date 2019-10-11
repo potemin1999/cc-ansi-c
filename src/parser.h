@@ -217,7 +217,6 @@ struct ConditionalExpression : Expression {
     ConditionalExpression *expression3{};
 };
 
-
 struct AssignmentExpression : Expression {
     ConditionalExpression *conditionalExpression;
     UnaryExpression *unaryExpression;
@@ -231,23 +230,9 @@ struct AssignmentExpression : Expression {
             unaryExpression(unary), oper(oper), assignmentExpression(assignment) {};
 };
 
-struct ArgumentExpressionList {
-    AssignmentExpression *assignmentExpression1;
-    AssignmentExpression *assignmentExpression2;
-
-    ArgumentExpressionList(AssignmentExpression *assignmentExpression) :
-            assignmentExpression1(assignmentExpression) {};
-
-    ArgumentExpressionList(AssignmentExpression *assignmentExpression1, AssignmentExpression *assignmentExpression2) :
-            assignmentExpression1(assignmentExpression1), assignmentExpression2(assignmentExpression2) {};
-};
-
 struct Enumerator {
     char *identifier;
     Constant *constant{};
-
-    Enumerator(char *identifier) :
-            identifier(identifier) {};
 
     Enumerator(char *identifier, Constant *constant) :
             identifier(identifier), constant(constant) {};
@@ -256,22 +241,18 @@ struct Enumerator {
 struct EnumeratorList {
     std::list<Enumerator> enumerators;
 
-    EnumeratorList(Enumerator enumerator) {
+    explicit EnumeratorList(Enumerator enumerator) {
         enumerators.push_back(enumerator);
     }
 
-    EnumeratorList(EnumeratorList enumeratorList, Enumerator enumerator) : enumerators(enumeratorList.enumerators) {
+    void addEnumerator(Enumerator enumerator){
         enumerators.push_back(enumerator);
     }
 };
 
 struct EnumSpecifier {
-    char *identifier;
-    EnumeratorList *enumeratorList;
-
-    EnumSpecifier(char *identifier) : identifier(identifier) {};
-
-    EnumSpecifier(EnumeratorList *enumeratorList) : enumeratorList(enumeratorList) {}
+    char *identifier {};
+    EnumeratorList *enumeratorList {};
 
     EnumSpecifier(char *identifier, EnumeratorList *enumeratorList) :
             identifier(identifier), enumeratorList(enumeratorList) {};
