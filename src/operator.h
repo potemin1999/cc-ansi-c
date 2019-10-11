@@ -27,4 +27,6 @@
 #define  OP_AND            20
 #define  OP_OR             21
 
+typedef int Operator;
+
 #endif //CC_LABS_OPERATOR_H
