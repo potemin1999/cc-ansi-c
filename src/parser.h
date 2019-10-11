@@ -213,38 +213,30 @@ struct LogicalOrExpression : Expression {
 };
 
 struct ConditionalExpression : Expression {
-    explicit ConditionalExpression(LogicalOrExpression *expression1) : Expression(), expression1(expression1) {}
-
-    ConditionalExpression(Operator oper, Expression *expression2, ConditionalExpression *expression3) :
-            Expression(), oper(oper), expression2(expression2), expression3(expression3) {}
+    ConditionalExpression(LogicalOrExpression *expression1, Expression *expression2, ConditionalExpression *expression3):
+            expression1(expression1), expression2(expression2), expression3(expression3) {}
 
     LogicalOrExpression *expression1{};
-
-    Operator oper{};
     Expression *expression2{};
     ConditionalExpression *expression3{};
 };
 
+struct AssignmentExpression : Expression {
+    ConditionalExpression *conditionalExpression;
+    UnaryExpression *unaryExpression;
+    Operator *oper;
+    AssignmentExpression *assignmentExpression;
 
-struct AssignmentExpression;
+    AssignmentExpression(ConditionalExpression *expression) :
+            conditionalExpression(expression) {};
 
-struct ArgumentExpressionList {
-    AssignmentExpression *assignmentExpression1;
-    AssignmentExpression *assignmentExpression2;
-
-    ArgumentExpressionList(AssignmentExpression *assignmentExpression) :
-            assignmentExpression1(assignmentExpression) {};
-
-    ArgumentExpressionList(AssignmentExpression *assignmentExpression1, AssignmentExpression *assignmentExpression2) :
-            assignmentExpression1(assignmentExpression1), assignmentExpression2(assignmentExpression2) {};
+    AssignmentExpression(UnaryExpression *unary, Operator *oper, AssignmentExpression *assignment) :
+            unaryExpression(unary), oper(oper), assignmentExpression(assignment) {};
 };
 
 struct Enumerator {
     char *identifier;
     Constant *constant{};
-
-    Enumerator(char *identifier) :
-            identifier(identifier) {};
 
     Enumerator(char *identifier, Constant *constant) :
             identifier(identifier), constant(constant) {};
@@ -253,22 +245,18 @@ struct Enumerator {
 struct EnumeratorList {
     std::list<Enumerator> enumerators;
 
-    EnumeratorList(Enumerator enumerator) {
+    explicit EnumeratorList(Enumerator enumerator) {
         enumerators.push_back(enumerator);
     }
 
-    EnumeratorList(EnumeratorList enumeratorList, Enumerator enumerator) : enumerators(enumeratorList.enumerators) {
+    void addEnumerator(Enumerator enumerator){
         enumerators.push_back(enumerator);
     }
 };
 
 struct EnumSpecifier {
-    char *identifier;
-    EnumeratorList *enumeratorList;
-
-    EnumSpecifier(char *identifier) : identifier(identifier) {};
-
-    EnumSpecifier(EnumeratorList *enumeratorList) : enumeratorList(enumeratorList) {}
+    char *identifier {};
+    EnumeratorList *enumeratorList {};
 
     EnumSpecifier(char *identifier, EnumeratorList *enumeratorList) :
             identifier(identifier), enumeratorList(enumeratorList) {};

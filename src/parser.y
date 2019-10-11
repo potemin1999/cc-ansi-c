@@ -131,113 +131,110 @@ PrimaryExpression : IDENTIFIER
 	| STRING_LITERAL
 	| '(' Expression ')'
 
-PostfixExpression : PrimaryExpression
-	| PostfixExpression '[' Expression ']'
-	| PostfixExpression '(' ')'
-	| PostfixExpression '(' Expression ')'
-	| PostfixExpression '.' IDENTIFIER
-	| PostfixExpression OP_PTR_ACCESS IDENTIFIER { $$ = new PostfixExpresion($1,OP_PTR_ACCESS,$3); }
-	| PostfixExpression OP_INC
-	| PostfixExpression OP_DEC
+PostfixExpression : PrimaryExpression {$$ = $1; }
+	| PostfixExpression '[' Expression ']' {$$ = new PostfixExpression($1, 0, $3);}
+	| PostfixExpression '(' ')'{ $$ = new PostfixExpresion($1, 1, nullptr); }
+	| PostfixExpression '(' ArgumentExpressionList ')' { $$ = new PostfixExpresion($1, 1, $3); }
+	| PostfixExpression '.' IDENTIFIER { $$ = new PostfixExpresion($1, 2, new PrimaryExpression($3)); }
+	| PostfixExpression OP_PTR_ACCESS IDENTIFIER { $$ = new PostfixExpression($1, OP_PTR_ACCESS, new PrimaryExpression($3)); }
+	| PostfixExpression OP_INC {$$ = new PostfixExpression($1, $2, nullptr);}
+	| PostfixExpression OP_DEC {$$ = new PostfixExpression($1, $2, nullptr);}
 
-UnaryOperator : '&'
-	| '*'
-	| '+'
-	| '-'
-	| '~'
-	| '!'
+UnaryOperator : '&' {$$ = 0}
+	| '*' {$$ = 1}
+	| '+' {$$ = 2}
+	| '-' {$$ = 3}
+	| '~' {$$ = 4}
+	| '!' {$$ = 5}
 
-UnaryExpression : PostfixExpression
-    	| OP_INC UnaryExpression
-    	| OP_DEC UnaryExpression
-    	| UnaryOperator CastExpression
-    	| SIZEOF UnaryExpression
-    	| SIZEOF '(' TypeName ')'
+UnaryExpression : PostfixExpression {$$ = new UnaryExpression(0, $1);}
+    	| OP_INC UnaryExpression {$$ = new UnaryExpression($1, $2);}
+    	| OP_DEC UnaryExpression {$$ = new UnaryExpression($1, $2);}
+    	| UnaryOperator CastExpression {$$ = new UnaryExpression($1, $2);}
+    	| SIZEOF UnaryExpression {$$ = new UnaryExpression($1, $2);}
+    	| SIZEOF '(' TypeName ')' {$$ = new UnaryExpression($1, $3);}
 
-CastExpression : UnaryExpression
-    	| '(' TypeName ')' CastExpression
+CastExpression : UnaryExpression {$$ = $1}
+    	| '(' TypeName ')' CastExpression {$$ = new CastExpression($2, $4);}
 
-MultiplicativeExpression : CastExpression
-	| MultiplicativeExpression '*' CastExpression
-	| MultiplicativeExpression '/' CastExpression
-	| MultiplicativeExpression '%' CastExpression
+MultiplicativeExpression : CastExpression {$$ = $1}
+	| MultiplicativeExpression '*' CastExpression {$$ = new MultiplicativeExpression($1, 0, $3);}
+	| MultiplicativeExpression '/' CastExpression {$$ = new MultiplicativeExpression($1, 1, $3);}
+	| MultiplicativeExpression '%' CastExpression {$$ = new MultiplicativeExpression($1, 2, $3);}
 
-AdditiveExpression : MultiplicativeExpression
-    	| AdditiveExpression '+' MultiplicativeExpression
-    	| AdditiveExpression '-' MultiplicativeExpression
+AdditiveExpression : MultiplicativeExpression {$$ = $1}
+    	| AdditiveExpression '+' MultiplicativeExpression {$$ = new AdditiveExpression($1, 0, $3);}
+    	| AdditiveExpression '-' MultiplicativeExpression {$$ = new AdditiveExpression($1, 1, $3);}
 
-ShiftExpression : AdditiveExpression
-   	| ShiftExpression OP_L_SHIFT AdditiveExpression
-   	| ShiftExpression OP_R_SHIFT AdditiveExpression
+ShiftExpression : AdditiveExpression {$$ = $1}
+   	| ShiftExpression OP_L_SHIFT AdditiveExpression {$$ = new ShiftExpression($1, $2, $3);}
+   	| ShiftExpression OP_R_SHIFT AdditiveExpression {$$ = new ShiftExpression($1, $2, $3);}
 
-RelationalExpression: ShiftExpression
-    	| RelationalExpression '<' ShiftExpression
-    	| RelationalExpression '>' ShiftExpression
-    	| RelationalExpression OP_LE_THAN ShiftExpression
-    	| RelationalExpression OP_GE_THAN ShiftExpression
+RelationalExpression: ShiftExpression {$$ = $1}
+    	| RelationalExpression '<' ShiftExpression {$$ = new RelationalExpression($1, 0, $3);}
+    	| RelationalExpression '>' ShiftExpression {$$ = new RelationalExpression($1, 1, $3);}
+    	| RelationalExpression OP_LE_THAN ShiftExpression {$$ = new RelationalExpression($1, $2, $3);}
+    	| RelationalExpression OP_GE_THAN ShiftExpression {$$ = new RelationalExpression($1, $2, $3);}
 
-EqualityExpression : RelationalExpression
-    	| EqualityExpression OP_EQ_TO RelationalExpression
-    	| EqualityExpression OP_NEQ_TO RelationalExpression
+EqualityExpression : RelationalExpression {$$ = $1}
+    	| EqualityExpression OP_EQ_TO RelationalExpression {$$ = new EqualityExpression($1, $2, $3);}
+    	| EqualityExpression OP_NEQ_TO RelationalExpression {$$ = new EqualityExpression($1, $2, $3);}
 
-AndExpression : EqualityExpression
-    	| AndExpression '&' EqualityExpression
+AndExpression : EqualityExpression {$$ = $1}
+    	| AndExpression '&' EqualityExpression {$$ = new AndExpression($1, $3);}
 
-ExclusiveOrExpression : AndExpression
-    	| ExclusiveOrExpression '^' AndExpression
+ExclusiveOrExpression : AndExpression {$$ = $1}
+    	| ExclusiveOrExpression '^' AndExpression {$$ = new ExclusiveOrExpression($1, $3);}
 
-InclusiveOrExpression : ExclusiveOrExpression
-    	| InclusiveOrExpression '|' ExclusiveOrExpression
+InclusiveOrExpression : ExclusiveOrExpression {$$ = $1}
+    	| InclusiveOrExpression '|' ExclusiveOrExpression {$$ = new InclusiveOrExpression($1, $3);}
 
-LogicalAndExpression : InclusiveOrExpression
-    	| LogicalAndExpression OP_AND InclusiveOrExpression
+LogicalAndExpression : InclusiveOrExpression {$$ = $1}
+    	| LogicalAndExpression OP_AND InclusiveOrExpression {$$ = new LogicalEndExpression($1, $3);}
 
-LogicalOrExpression : LogicalAndExpression
-    	| LogicalOrExpression OP_OR LogicalAndExpression
+LogicalOrExpression : LogicalAndExpression {$$ = new LogicalAndExpression(nullptr, $1);}
+    	| LogicalOrExpression OP_OR LogicalAndExpression {$$ = $1}
 
-ConditionalExpression : LogicalOrExpression
-    	| LogicalOrExpression '?' Expression : ConditionalExpression
+ConditionalExpression : LogicalOrExpression {$$ = $1}
+    	| LogicalOrExpression '?' Expression ':' ConditionalExpression {$$ = new ConditionalExpression($1, $2, $3);}
 
-AssignmentOperator : '='
-    	| OP_MUL_ASSIGN
-    	| OP_DIV_ASSIGN
-    	| OP_MOD_ASSIGN
-    	| OP_ADD_ASSIGN
-    	| OP_SUB_ASSIGN
-    	| OP_L_SHIFT_ASSIGN
-    	| OP_R_SHIFT_ASSIGN
-    	| OP_AND_ASSIGN
-    	| OP_XOR_ASSIGN
-    	| OP_OR_ASSIGN
+AssignmentOperator : '='    {$$ = 0}
+    	| OP_MUL_ASSIGN     {$$ = $1}
+    	| OP_DIV_ASSIGN     {$$ = $1}
+    	| OP_MOD_ASSIGN     {$$ = $1}
+    	| OP_ADD_ASSIGN     {$$ = $1}
+    	| OP_SUB_ASSIGN     {$$ = $1}
+    	| OP_L_SHIFT_ASSIGN {$$ = $1}
+    	| OP_R_SHIFT_ASSIGN {$$ = $1}
+    	| OP_AND_ASSIGN     {$$ = $1}
+    	| OP_XOR_ASSIGN     {$$ = $1}
+    	| OP_OR_ASSIGN      {$$ = $1}
 
-AssignmentExpression : ConditionalExpression
-	| UnaryExpression AssignmentOperator AssignmentExpression { $$ = $2 }
+AssignmentExpression : ConditionalExpression {$$ = $1}
+	| UnaryExpression AssignmentOperator AssignmentExpression { $$ = new AssignmentExpression($1, $2, $3);}
 
-Expression : AssignmentExpression
-	| Expression ',' AssignmentExpression
+Expression : AssignmentExpression { $$ = $1}
+	| Expression ',' AssignmentExpression {$$ = $1, $3} //TODO maybe fix this
 
-ArgumentExpressionList : AssignmentExpression {$$ = $1}
-    	| ArgumentExpressionList ',' AssignmentExpression {$$ = $1, $3}
+Enumerator : IDENTIFIER  {$$ = new Enumerator($1, nullptr);}
+    	| IDENTIFIER '=' Constant {$$ = new Enumerator($1, $3);}
 
-Enumerator : IDENTIFIER
-    	| IDENTIFIER '=' Constant
+EnumeratorList : Enumerator {$$ = new EnumeratorList($1);}
+    	| EnumeratorList ',' Enumerator {$$ = $1->addEnumerator($3);}
 
-EnumeratorList : Enumerator
-    	| EnumeratorList ',' Enumerator
+EnumSpecifier : ENUM IDENTIFIER {$$ = new EnumSpecifier($1, nullptr);}
+    	| ENUM '{' EnumeratorList '}' {$$ = new EnumSpecifier(nullptr, $3);}
+    	| ENUM IDENTIFIER '{' EnumeratorList '}' {$$ = new EnumSpecifier($2, $4);}
 
-EnumSpecifier : ENUM IDENTIFIER
-    	| ENUM '{' EnumeratorList '}'
-    	| ENUM IDENTIFIER '{' EnumeratorList '}'
+Initializer : AssignmentExpression {$$ = new Initializer($1);}
+    	| '{' InitializerList '}' {$$ = new Initializer($2);}
+    	| '{' InitializerList ',' '}' {$$ = new Initializer($2);}
 
-Initializer : AssignmentExpression
-    	| '{' InitializerList '}'
-    	| '{' InitializerList ',' '}'
+InitializerList : Initializer {$$ = new InitializerList($1);}
+    	| InitializerList ',' Initializer {$$ = $1 -> addInitializer($3);}
 
-InitializerList : Initializer
-    	| InitializerList ',' Initializer
-
-IdentifierList : IDENTIFIER
-    	| IdentifierList ',' IDENTIFIER
+IdentifierList : IDENTIFIER {$$ = new IdentifierList($1);}
+    	| IdentifierList ',' IDENTIFIER {$$ = $1 -> addIdentifier($3);}
 
 TypeQualifier : CONST { $$ = $1; } | VOLATILE { $$ = $1; }
 
