@@ -64,6 +64,7 @@
 
 %type <stringVal> IDENTIFIER
 %type <stringVal> TypeName
+%type <enumerator> Enumerator
 %type <oper> AssignmentOperator
 %type <astNode> Constant
 %type <unaryExpression> UnaryExpression
@@ -82,20 +83,27 @@
 %type <structDeclaratorList> StructDeclaratorList
 %type <statementList> StatementList
 %type <declarator> Declarator
+%type <declaration> Declaration
+%type <declarationList> DeclarationList
 %type <functionDefinition> FunctionDefinition
 %type <externalDeclaration> ExternalDeclaration
 %type <translationUnit> TranslationUnit
+%type <declarationSpecifiers> DeclarationSpecifiers
+%type <storageClassSpecifier> StorageClassSpecifier
+%type <argumentExpressionList> ArgumentExpressionList
+%type <specifierQualifierList> SpecifierQualifierList
+%type <abstractDeclarator> AbstractDeclarator
 %%
 
-StorageClassSpecifier : AUTO {$$ = 0}
-	| REGISTER {$$ = 1}
-	| STATIC {$$ = 2}
-	| EXTERN {$$ = 3}
+StorageClassSpecifier : AUTO {$$ = new StorageClassSpecifier(1); }
+	| REGISTER {$$ = new StorageClassSpecifier(2); }
+	| STATIC {$$ = new StorageClassSpecifier(3); }
+	| EXTERN {$$ = new StorageClassSpecifier(4); }
 
-Constant : INT_LITERAL {$$ = 0}
-	| CHAR_LITERAL {$$ = 1}
-	| FLOAT_LITERAL {$$ = 2}
-	| Enumerator {$$ = $1, 3}
+Constant : INT_LITERAL {$$ = new ConstantType(1); }
+	| CHAR_LITERAL {$$ = new ConstantType(2);}
+	| FLOAT_LITERAL {$$ = new ConstantType(3);}
+	| Enumerator {$$ = new ConstantType($1,4);}
 
 PrimaryExpression : IDENTIFIER
 	| Constant
@@ -293,6 +301,9 @@ StructDeclarator : Declarator
 	| Declarator ':' Constant
 	| ':' Constant
 
+StructDeclaratorList : StructDeclarator
+	| StructDeclaratorList StructDeclarator
+
 StructDeclaration : SpecifierQualifierList StructDeclaratorList ';'
 
 StructDeclarationList : StructDeclaration
@@ -331,7 +342,7 @@ JumpStatement : GOTO IDENTIFIER ';' {$$ = $2, 0 ;}
 	| CONTINUE ';' {$$ = 1 ;}
 	| BREAK ';' {$$ = 2 ;}
 	| RETURN ';' {$$ = 3}
-	| RETURN Expression ';' {$$ = $ 2, 4}
+	| RETURN Expression ';' {$$ = $2, 4}
 
 LabeledStatement : IDENTIFIER ':' Statement {$$ = $1, $3 0}
 	| CASE Constant ':' Statement {$$ = $2, $4, 1}
