@@ -15,10 +15,11 @@ L_ESC   (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+))
 L_W     [ \t\v\n\f]
 
 %{
-#include "y.tab.h"
+#include "y.tab.hpp"
 #include "../operator.h"
-static int GetIdentType();
 %}
+
+%option noyywrap
 
 %%
 
@@ -111,7 +112,7 @@ _Imaginary  { return IMAGINARY; }
 ">"			{ return '>'; }
 "?"			{ return '?'; }
 
-{L}{L_DEC}   { return GetIdentType();    }
+{L}{L_DEC}   { return IDENTIFIER;    }
 
 {HEX_P}{HEX}+{I_SPEC}?              { return INT_LITERAL;   }
 {DEC_NZ}{DEC}*{I_SPEC}?             { return INT_LITERAL;   }

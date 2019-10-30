@@ -5,6 +5,7 @@
 #ifndef CC_LABS_OPERATOR_H
 #define CC_LABS_OPERATOR_H
 
+/*
 #define  OP_R_SHIFT_ASSIGN 1
 #define  OP_L_SHIFT_ASSIGN 2
 #define  OP_PTR_ACCESS     3
@@ -26,7 +27,7 @@
 #define  OP_DEC            19
 #define  OP_AND            20
 #define  OP_OR             21
-
+*/
 typedef int Operator;
 
 #endif //CC_LABS_OPERATOR_H
